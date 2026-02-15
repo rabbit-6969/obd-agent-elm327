@@ -1,0 +1,211 @@
+{
+  "timestamp": "20260214_190247",
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008
+  },
+  "adapter": {
+    "version": "ELM327 v1.5",
+    "voltage": 11.1
+  },
+  "modules": {
+    "7E0": {
+      "description": "PCM (Powertrain Control Module)",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "7E8": {
+      "description": "PCM Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "7E1": {
+      "description": "Transmission",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "7E9": {
+      "description": "Transmission Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "7A0": {
+      "description": "HVAC",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "7A8": {
+      "description": "HVAC Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "760": {
+      "description": "ABS",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "768": {
+      "description": "ABS Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "726": {
+      "description": "BCM (Body Control Module)",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "72E": {
+      "description": "BCM Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "733": {
+      "description": "IPC (Instrument Panel Cluster)",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    },
+    "73B": {
+      "description": "IPC Response",
+      "accessible": false,
+      "test_response": "CAN ERROR"
+    }
+  },
+  "supported_pids": {
+    "01-20": "CAN ERROR",
+    "21-40": "CAN ERROR",
+    "41-60": "CAN ERROR",
+    "61-80": "CAN ERROR",
+    "81-A0": "CAN ERROR",
+    "A1-C0": "CAN ERROR",
+    "C1-E0": "CAN ERROR"
+  },
+  "live_data": {
+    "0104": {
+      "description": "Calculated Engine Load",
+      "response": "CAN ERROR"
+    },
+    "0105": {
+      "description": "Engine Coolant Temperature",
+      "response": "CAN ERROR"
+    },
+    "0106": {
+      "description": "Short Term Fuel Trim Bank 1",
+      "response": "CAN ERROR"
+    },
+    "0107": {
+      "description": "Long Term Fuel Trim Bank 1",
+      "response": "CAN ERROR"
+    },
+    "010C": {
+      "description": "Engine RPM",
+      "response": "CAN ERROR"
+    },
+    "010D": {
+      "description": "Vehicle Speed",
+      "response": "CAN ERROR"
+    },
+    "010E": {
+      "description": "Timing Advance",
+      "response": "CAN ERROR"
+    },
+    "010F": {
+      "description": "Intake Air Temperature",
+      "response": "CAN ERROR"
+    },
+    "0110": {
+      "description": "MAF Air Flow Rate",
+      "response": "CAN ERROR"
+    },
+    "0111": {
+      "description": "Throttle Position",
+      "response": "CAN ERROR"
+    },
+    "0113": {
+      "description": "Oxygen Sensors Present",
+      "response": "CAN ERROR"
+    },
+    "011C": {
+      "description": "OBD Standards",
+      "response": "CAN ERROR"
+    },
+    "011F": {
+      "description": "Run Time Since Engine Start",
+      "response": "CAN ERROR"
+    },
+    "0121": {
+      "description": "Distance Traveled with MIL On",
+      "response": "CAN ERROR"
+    },
+    "012F": {
+      "description": "Fuel Tank Level Input",
+      "response": "CAN ERROR"
+    },
+    "0133": {
+      "description": "Absolute Barometric Pressure",
+      "response": "CAN ERROR"
+    },
+    "0142": {
+      "description": "Control Module Voltage",
+      "response": "CAN ERROR"
+    },
+    "0143": {
+      "description": "Absolute Load Value",
+      "response": "CAN ERROR"
+    },
+    "0145": {
+      "description": "Relative Throttle Position",
+      "response": "CAN ERROR"
+    },
+    "0146": {
+      "description": "Ambient Air Temperature",
+      "response": "CAN ERROR"
+    },
+    "014D": {
+      "description": "Time Run with MIL On",
+      "response": "CAN ERROR"
+    },
+    "014E": {
+      "description": "Time Since DTCs Cleared",
+      "response": "CAN ERROR"
+    },
+    "0151": {
+      "description": "Fuel Type",
+      "response": "CAN ERROR"
+    }
+  },
+  "dtcs": {
+    "mode_03": "CAN ERROR",
+    "mode_07": "CAN ERROR",
+    "mode_0A": "CAN ERROR"
+  },
+  "freeze_frames": {
+    "mode_02": "CAN ERROR"
+  },
+  "monitor_status": {
+    "response": "CAN ERROR"
+  },
+  "vehicle_connected": true,
+  "vehicle_info": {
+    "0900": {
+      "description": "Supported PIDs",
+      "response": "CAN ERROR"
+    },
+    "0902": {
+      "description": "VIN",
+      "response": "CAN ERROR"
+    },
+    "0904": {
+      "description": "Calibration ID",
+      "response": "CAN ERROR"
+    },
+    "0906": {
+      "description": "Calibration Verification Numbers",
+      "response": "CAN ERROR"
+    },
+    "090A": {
+      "description": "ECU Name",
+      "response": "CAN ERROR"
+    }
+  }
+}

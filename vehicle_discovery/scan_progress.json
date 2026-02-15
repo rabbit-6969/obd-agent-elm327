@@ -1,0 +1,21 @@
+{
+  "progress": {
+    "modules_scanned": [],
+    "current_module": null,
+    "current_scan_type": null,
+    "last_did": 0,
+    "last_routine": 0,
+    "start_time": "2026-02-15T15:24:01.067370",
+    "last_save_time": "2026-02-15T15:24:20.943698"
+  },
+  "modules_found": {},
+  "dids_found": {},
+  "routines_found": {},
+  "actuations_found": {},
+  "stats": {
+    "total_commands_sent": 42,
+    "positive_responses": 0,
+    "negative_responses": 0,
+    "no_responses": 0
+  }
+}

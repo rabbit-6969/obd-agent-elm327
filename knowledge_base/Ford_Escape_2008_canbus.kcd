@@ -1,0 +1,179 @@
+<!-- Ford Escape 2008 CAN Database -->
+<!-- To be populated with data from FORScan capture -->
+<!-- Based on Mazda SkyActiv KCD format -->
+
+<NetworkDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                   xmlns="http://kayak.2codeornot2code.org/1.0" 
+                   xsi:noNamespaceSchemaLocation="Definition.xsd">
+  
+  <Document name="Ford Escape 2008 CANbus" version="0.01" date="2026-02-14">
+    <Notes>
+      VIN: 1FMCU03Z68KB12969
+      Calibration: QIEF1A6.HEX
+      Data collected: 2026-02-14
+      Adapter: ELM327 v1.5 with HS/MS-CAN switch
+    </Notes>
+  </Document>
+  
+  <!-- Node Definitions -->
+  <Node id="1" name="Powertrain Control Module (PCM)"/>
+  <Node id="2" name="Anti-lock Brake System (ABS)"/>
+  <Node id="3" name="HVAC Control Module"/>
+  <Node id="4" name="Body Control Module (BCM)"/>
+  <Node id="5" name="Instrument Panel Cluster (IPC)"/>
+  <Node id="6" name="Transmission Control Module (TCM)"/>
+  
+  <!-- HS-CAN Bus (500 kbps) - Pins 6 & 14 -->
+  <Bus name="HS-CAN" baudrate="500000">
+    
+    <!-- PCM Messages -->
+    <!-- TODO: Add from FORScan capture -->
+    <Message id="0x7E0" name="PCM_Request">
+      <Producer><NodeRef id="1"/></Producer>
+      <Notes>Standard OBD-II request to PCM</Notes>
+    </Message>
+    
+    <Message id="0x7E8" name="PCM_Response">
+      <Producer><NodeRef id="1"/></Producer>
+      <Notes>Standard OBD-II response from PCM</Notes>
+      
+      <!-- Example signals from our collected data -->
+      <Signal name="Engine Coolant Temperature" offset="0" length="8">
+        <Value slope="1" intercept="-40" unit="celsius" min="-40" max="215"/>
+        <Notes>PID 05: Raw value 0x36 = 54, converted = 14°C</Notes>
+      </Signal>
+      
+      <Signal name="Engine RPM" offset="0" length="16">
+        <Value slope="0.25" intercept="0" unit="rpm" min="0" max="16383"/>
+        <Notes>PID 0C: Two bytes, divide by 4</Notes>
+      </Signal>
+      
+      <Signal name="Vehicle Speed" offset="0" length="8">
+        <Value slope="1" intercept="0" unit="km/h" min="0" max="255"/>
+        <Notes>PID 0D: Direct value in km/h</Notes>
+      </Signal>
+      
+      <Signal name="Throttle Position" offset="0" length="8">
+        <Value slope="0.392157" intercept="0" unit="percent" min="0" max="100"/>
+        <Notes>PID 11: Percentage (value * 100 / 255)</Notes>
+      </Signal>
+      
+      <Signal name="Fuel Tank Level" offset="0" length="8">
+        <Value slope="0.392157" intercept="0" unit="percent" min="0" max="100"/>
+        <Notes>PID 2F: Percentage (value * 100 / 255)</Notes>
+      </Signal>
+      
+      <Signal name="Control Module Voltage" offset="0" length="16">
+        <Value slope="0.001" intercept="0" unit="volts" min="0" max="65.535"/>
+        <Notes>PID 42: Two bytes, divide by 1000</Notes>
+      </Signal>
+    </Message>
+    
+    <!-- ABS Messages -->
+    <Message id="0x760" name="ABS_Request">
+      <Producer><NodeRef id="2"/></Producer>
+      <Notes>ABS module request - responds with 7F 03 11 (service not supported)</Notes>
+    </Message>
+    
+    <!-- IPC Messages -->
+    <Message id="0x733" name="IPC_Request">
+      <Producer><NodeRef id="5"/></Producer>
+      <Notes>Instrument Panel Cluster - not accessible via standard OBD-II</Notes>
+    </Message>
+    
+    <!-- TCM Messages -->
+    <Message id="0x7E1" name="TCM_Request">
+      <Producer><NodeRef id="6"/></Producer>
+      <Notes>Transmission Control Module - not accessible via standard OBD-II</Notes>
+    </Message>
+    
+  </Bus>
+  
+  <!-- MS-CAN Bus (125 kbps) - Pins 3 & 11 -->
+  <Bus name="MS-CAN" baudrate="125000">
+    
+    <!-- HVAC Messages -->
+    <!-- TODO: Populate from FORScan capture tomorrow -->
+    <Message id="0x7A0" name="HVAC_Request">
+      <Producer><NodeRef id="3"/></Producer>
+      <Notes>
+        HVAC diagnostic request
+        Requires UDS protocol (not standard OBD-II)
+        Use Mode 19 for DTCs, Mode 22 for live data
+      </Notes>
+      
+      <!-- UDS Service 19: Read DTCs by Status -->
+      <Signal name="UDS_Service_19" offset="0" length="8">
+        <Notes>
+          Request: 19 02 AF (Read DTCs by status mask)
+          Response: 59 02 AF [DTC data]
+        </Notes>
+      </Signal>
+      
+      <!-- UDS Service 22: Read Data by Identifier -->
+      <Signal name="UDS_Service_22" offset="0" length="8">
+        <Notes>
+          Request: 22 [PID_HIGH] [PID_LOW]
+          Response: 62 [PID_HIGH] [PID_LOW] [data]
+        </Notes>
+      </Signal>
+    </Message>
+    
+    <Message id="0x7A8" name="HVAC_Response">
+      <Producer><NodeRef id="3"/></Producer>
+      <Notes>
+        HVAC diagnostic response
+        TODO: Add signal definitions from FORScan capture
+      </Notes>
+      
+      <!-- Example signals to be populated -->
+      <Signal name="Blend Door Position" offset="0" length="8">
+        <Notes>TODO: Determine from FORScan capture</Notes>
+      </Signal>
+      
+      <Signal name="Fan Speed" offset="0" length="8">
+        <Notes>TODO: Determine from FORScan capture</Notes>
+      </Signal>
+      
+      <Signal name="Temperature Setpoint" offset="0" length="8">
+        <Notes>TODO: Determine from FORScan capture</Notes>
+      </Signal>
+      
+      <Signal name="Actual Temperature" offset="0" length="8">
+        <Notes>TODO: Determine from FORScan capture</Notes>
+      </Signal>
+    </Message>
+    
+    <!-- BCM Messages -->
+    <Message id="0x726" name="BCM_Request">
+      <Producer><NodeRef id="4"/></Producer>
+      <Notes>Body Control Module - not accessible via standard OBD-II</Notes>
+    </Message>
+    
+  </Bus>
+  
+  <!-- Notes for Future Development -->
+  <Notes>
+    This file will be populated with actual signal definitions after FORScan capture.
+    
+    Data Sources:
+    1. Standard OBD-II PIDs (HS-CAN) - Already collected
+    2. FORScan HVAC capture (MS-CAN) - To be collected tomorrow
+    3. Ford service manual specifications
+    
+    Signal Format:
+    - offset: Bit position in message (0-based)
+    - length: Number of bits
+    - endianess: "big" or "little"
+    - slope: Multiply raw value by this
+    - intercept: Add this to scaled value
+    - unit: Physical unit (celsius, rpm, km/h, etc.)
+    
+    Example Calculation:
+    Raw value: 0x36 (54 decimal)
+    Slope: 1
+    Intercept: -40
+    Result: (54 * 1) + (-40) = 14°C
+  </Notes>
+  
+</NetworkDefinition>

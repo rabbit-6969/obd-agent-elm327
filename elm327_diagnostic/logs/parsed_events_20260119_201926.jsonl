@@ -1,0 +1,4 @@
+{"timestamp": "2026-01-19T20:19:26.397042", "direction": "TX", "type": "AT", "command": "AT RV", "raw": null}
+{"timestamp": "2026-01-19T20:19:26.397042", "direction": "TX", "type": "AT", "command": "AT CV", "raw": null}
+{"timestamp": "2026-01-19T20:19:26.401448", "direction": "TX", "type": "AT", "command": "AT DP", "raw": null}
+{"timestamp": "2026-01-19T20:19:26.404784", "direction": "TX", "type": "OBD", "command": "0100", "raw": null}

@@ -1,0 +1,74 @@
+# Ford Escape 2008 - Technical Data
+# Generated: 2026-02-14 (Updated with real vehicle data)
+# Version: 2.0
+# Format: compact-v1
+# VIN: 1FMCU03Z68KB12969
+# Adapter: ELM327 v1.5
+# Data Collection: 2026-02-14 18:54:42
+
+## Modules
+# Status: accessible=full OBD-II support, partial=responds but limited, not_accessible=requires proprietary tools
+M:PCM A:7E0 P:CAN B:HS S:accessible
+M:ABS A:760 P:CAN B:HS S:partial
+M:HVAC A:7A0 P:CAN B:MS S:not_accessible
+M:BCM A:726 P:CAN B:MS S:not_accessible
+M:IPC A:720 P:CAN B:HS S:not_accessible
+M:TCM A:7E1 P:CAN B:HS S:not_accessible
+
+## Supported PID Ranges (from real vehicle)
+# PCM Module supports:
+# Range 01-20: BE 3F B8 13
+# Range 21-40: C0 17 E0 11
+# Range 41-60: FC 00 00 00
+
+## Commands
+C:PCM.READ_DTC M:03 R:43[0-9A-F]{4,}
+C:PCM.CLEAR_DTC M:04 R:44
+C:PCM.READ_LIVE M:01 PID:05 R:41 05 [0-9A-F]{2}
+C:PCM.READ_VIN M:09 PID:02 R:49 02 01 [0-9A-F]+
+C:PCM.READ_CALIBRATION M:09 PID:04 R:49 04 01 [0-9A-F]+
+C:PCM.MONITOR_STATUS M:01 PID:01 R:41 01 [0-9A-F]{8}
+C:PCM.READ_TRANS_TEMP UDS:22 DID:0100 R:62 01 00 [0-9A-F]{2}
+C:PCM.READ_TRANS_PRESSURE UDS:22 DID:0101 R:62 01 01 [0-9A-F]{4}
+C:ABS.READ_PARAM_0200 UDS:22 DID:0200 R:62 02 00 [0-9A-F]{2}
+C:ABS.READ_PARAM_0202 UDS:22 DID:0202 R:62 02 02 [0-9A-F]{2}
+C:ABS.READ_DTC M:03 R:43[0-9A-F]{4,}|7F 03 11
+C:ABS.CLEAR_DTC M:04 R:44
+C:HVAC.READ_DTC M:03 R:43[0-9A-F]{4,}
+C:HVAC.CLEAR_DTC M:04 R:44
+C:HVAC.READ_LIVE M:01 PID:05 R:41 05 [0-9A-F]{2}
+C:HVAC.ACTUATE_BLEND M:31 PID:01 D:FF R:71 01
+
+## DTC Parsing
+DTC:P1632 B:0-1 BITS:0-15 CALC:hex
+DTC:P1635 B:0-1 BITS:0-15 CALC:hex
+DTC:C1234 B:0-1 BITS:0-15 CALC:hex
+DTC:B1234 B:0-1 BITS:0-15 CALC:hex
+DTC:U1234 B:0-1 BITS:0-15 CALC:hex
+
+## Response Parsing
+R:READ_DTC PATTERN:43([0-9A-F]{4})+ EXTRACT:dtc_hex
+R:LIVE_TEMP PATTERN:41 05 ([0-9A-F]{2}) EXTRACT:temp_hex CALC:(hex-40)
+R:VOLTAGE PATTERN:41 42 ([0-9A-F]{4}) EXTRACT:volt_hex CALC:(hex/1000)
+R:READ_VIN PATTERN:49 02 01 ([0-9A-F]+) EXTRACT:vin_hex
+R:ABS_NOT_SUPPORTED PATTERN:7F 03 11 MEANING:service_not_supported
+R:TRANS_TEMP PATTERN:62 01 00 ([0-9A-F]{2}) EXTRACT:temp_hex CALC:(hex-40)
+R:TRANS_PRESSURE PATTERN:62 01 01 ([0-9A-F]{4}) EXTRACT:pressure_hex CALC:hex
+R:ABS_PARAM_0200 PATTERN:62 02 00 ([0-9A-F]{2}) EXTRACT:param_hex CALC:hex
+R:ABS_PARAM_0202 PATTERN:62 02 02 ([0-9A-F]{2}) EXTRACT:param_hex CALC:hex
+
+## Bit Mappings
+BM:monitor_status BYTE:1 BIT:0 MEANING:0=incomplete,1=complete
+BM:dtc_pending BYTE:1 BIT:2 MEANING:0=no,1=yes
+BM:mil_status BYTE:1 BIT:7 MEANING:0=off,1=on
+
+## Real Vehicle Test Responses (for test fixtures)
+# PCM DTC Read: 43 00 (no DTCs)
+# PCM Pending DTC: 47 00 (no pending)
+# PCM Permanent DTC: 7F 0A 11 (not supported)
+# ABS DTC Read: 7F 03 11 (service not supported)
+# Monitor Status: 41 01 00 07 E5 00
+# VIN: 1FMCU03Z68KB12969
+# Calibration ID: QIEF1A6.HEX
+# OBD Standard: 02 (OBD-II as defined by EPA)
+

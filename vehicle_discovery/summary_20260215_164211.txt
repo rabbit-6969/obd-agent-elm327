@@ -1,0 +1,26 @@
+======================================================================
+Vehicle DID Discovery - Summary
+======================================================================
+
+Date: 2026-02-15 16:42:11
+Vehicle: 2008 Ford Escape
+
+Statistics:
+  Total DIDs tested: 768
+  Positive responses: 2
+  Negative responses: 766
+  No response: 0
+
+DIDs Found: 2
+======================================================================
+
+DID 0x0100
+  Response: 62 01 00 0C >
+  Range: Transmission parameters
+  Discovered: 2026-02-15T16:34:01.065216
+----------------------------------------------------------------------
+DID 0x0101
+  Response: 62 01 01 01 CE >
+  Range: Transmission parameters
+  Discovered: 2026-02-15T16:34:01.667264
+----------------------------------------------------------------------

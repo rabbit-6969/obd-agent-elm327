@@ -1,0 +1,279 @@
+{
+  "metadata": {
+    "vehicle": {
+      "make": "Ford",
+      "model": "Escape",
+      "year": 2008,
+      "vin": "1FMCU03Z68KB12969"
+    },
+    "adapter": {
+      "version": "ELM327 v1.5",
+      "voltage": 11.4
+    },
+    "collection_date": "2026-02-14T18:54:42",
+    "notes": "Real vehicle responses collected for testing. Engine off, ignition on."
+  },
+  
+  "adapter_commands": {
+    "AT_I": "ELM327 v1.5",
+    "AT_RV": "11.4V",
+    "AT_Z": "ELM327 v1.5",
+    "AT_E0": "OK",
+    "AT_L0": "OK",
+    "AT_S0": "OK",
+    "AT_H1": "OK",
+    "AT_SP0": "OK"
+  },
+  
+  "connection_test": {
+    "0100": "41 00 BE 3F B8 13"
+  },
+  
+  "supported_pids": {
+    "0100": "41 00 BE 3F B8 13",
+    "0120": "41 20 C0 17 E0 11",
+    "0140": "41 40 FC 00 00 00",
+    "0160": "NO DATA",
+    "0180": "NO DATA",
+    "01A0": "NO DATA",
+    "01C0": "NO DATA"
+  },
+  
+  "live_data": {
+    "0104": {
+      "response": "41 04 00",
+      "description": "Calculated Engine Load",
+      "value": "0%"
+    },
+    "0105": {
+      "response": "41 05 36",
+      "description": "Engine Coolant Temperature",
+      "value": "14°C"
+    },
+    "0106": {
+      "response": "41 06 80",
+      "description": "Short Term Fuel Trim Bank 1",
+      "value": "0%"
+    },
+    "0107": {
+      "response": "41 07 80",
+      "description": "Long Term Fuel Trim Bank 1",
+      "value": "0%"
+    },
+    "010C": {
+      "response": "41 0C 00 00",
+      "description": "Engine RPM",
+      "value": "0 RPM"
+    },
+    "010D": {
+      "response": "41 0D 00",
+      "description": "Vehicle Speed",
+      "value": "0 km/h"
+    },
+    "010E": {
+      "response": "41 0E 94",
+      "description": "Timing Advance",
+      "value": "68° before TDC"
+    },
+    "010F": {
+      "response": "41 0F 44",
+      "description": "Intake Air Temperature",
+      "value": "28°C"
+    },
+    "0110": {
+      "response": "41 10 00 00",
+      "description": "MAF Air Flow Rate",
+      "value": "0 g/s"
+    },
+    "0111": {
+      "response": "41 11 2A",
+      "description": "Throttle Position",
+      "value": "16.5%"
+    },
+    "0113": {
+      "response": "41 13 03",
+      "description": "Oxygen Sensors Present",
+      "value": "Bank 1 Sensors 1,2"
+    },
+    "011C": {
+      "response": "41 1C 02",
+      "description": "OBD Standards",
+      "value": "OBD-II as defined by EPA"
+    },
+    "011F": {
+      "response": "41 1F 00 00",
+      "description": "Run Time Since Engine Start",
+      "value": "0 seconds"
+    },
+    "0121": {
+      "response": "41 21 00 00",
+      "description": "Distance Traveled with MIL On",
+      "value": "0 km"
+    },
+    "012F": {
+      "response": "41 2F FC",
+      "description": "Fuel Tank Level Input",
+      "value": "99.2%"
+    },
+    "0133": {
+      "response": "41 33 62",
+      "description": "Absolute Barometric Pressure",
+      "value": "98 kPa"
+    },
+    "0142": {
+      "response": "41 42 2D CE",
+      "description": "Control Module Voltage",
+      "value": "11.662V"
+    },
+    "0143": {
+      "response": "41 43 00 00",
+      "description": "Absolute Load Value",
+      "value": "0%"
+    },
+    "0145": {
+      "response": "41 45 00",
+      "description": "Relative Throttle Position",
+      "value": "0%"
+    },
+    "0146": {
+      "response": "41 46 36",
+      "description": "Ambient Air Temperature",
+      "value": "14°C"
+    }
+  },
+  
+  "dtc_commands": {
+    "03": {
+      "response": "43 00",
+      "description": "Read stored DTCs",
+      "dtc_count": 0,
+      "dtcs": []
+    },
+    "07": {
+      "response": "47 00",
+      "description": "Read pending DTCs",
+      "dtc_count": 0,
+      "dtcs": []
+    },
+    "0A": {
+      "response": "7F 0A 11",
+      "description": "Read permanent DTCs",
+      "error": "Service not supported"
+    }
+  },
+  
+  "monitor_status": {
+    "0101": {
+      "response": "41 01 00 07 E5 00",
+      "description": "Monitor status since DTCs cleared",
+      "mil_status": "OFF",
+      "dtc_count": 0,
+      "monitors": {
+        "misfire": "complete",
+        "fuel_system": "complete",
+        "components": "complete"
+      }
+    }
+  },
+  
+  "freeze_frame": {
+    "0200": "NO DATA"
+  },
+  
+  "vehicle_info": {
+    "0900": {
+      "response": "49 00 55 00 00 00",
+      "description": "Supported Mode 09 PIDs"
+    },
+    "0902": {
+      "response": "014 \r0: 49 02 01 31 46 4D \r1: 43 55 30 33 5A 36 38 \r2: 4B 42 31 32 39 36 39",
+      "description": "VIN",
+      "decoded": "1FMCU03Z68KB12969"
+    },
+    "0904": {
+      "response": "013 \r0: 49 04 01 51 49 45 \r1: 46 31 41 36 2E 48 45 \r2: 58 00 00 00 00 00 00",
+      "description": "Calibration ID",
+      "decoded": "QIEF1A6.HEX"
+    },
+    "0906": {
+      "response": "49 06 01 33 13 B7 13",
+      "description": "Calibration Verification Numbers"
+    },
+    "090A": "NO DATA"
+  },
+  
+  "module_tests": {
+    "7E0_PCM": {
+      "address": "7E0",
+      "description": "PCM (Powertrain Control Module)",
+      "accessible": true,
+      "test_command": "03",
+      "test_response": "43 00",
+      "notes": "Fully accessible via standard OBD-II"
+    },
+    "760_ABS": {
+      "address": "760",
+      "description": "ABS",
+      "accessible": false,
+      "test_command": "03",
+      "test_response": "7F 03 11",
+      "notes": "Responds but service not supported (7F 03 11)"
+    },
+    "7A0_HVAC": {
+      "address": "7A0",
+      "description": "HVAC",
+      "accessible": false,
+      "test_command": "03",
+      "test_response": "NO DATA",
+      "notes": "Not accessible via standard OBD-II, requires FORScan/IDS"
+    },
+    "7E1_TCM": {
+      "address": "7E1",
+      "description": "Transmission",
+      "accessible": false,
+      "test_command": "03",
+      "test_response": "NO DATA",
+      "notes": "Not accessible via standard OBD-II"
+    },
+    "726_BCM": {
+      "address": "726",
+      "description": "BCM (Body Control Module)",
+      "accessible": false,
+      "test_command": "03",
+      "test_response": "NO DATA",
+      "notes": "Not accessible via standard OBD-II"
+    },
+    "733_IPC": {
+      "address": "733",
+      "description": "IPC (Instrument Panel Cluster)",
+      "accessible": false,
+      "test_command": "03",
+      "test_response": "NO DATA",
+      "notes": "Not accessible via standard OBD-II"
+    }
+  },
+  
+  "test_scenarios": {
+    "no_dtcs_present": {
+      "description": "Vehicle with no diagnostic trouble codes",
+      "commands": {
+        "03": "43 00",
+        "07": "47 00"
+      }
+    },
+    "engine_off_ignition_on": {
+      "description": "Engine not running, ignition on",
+      "commands": {
+        "010C": "41 0C 00 00",
+        "010D": "41 0D 00",
+        "0104": "41 04 00"
+      }
+    },
+    "full_fuel_tank": {
+      "description": "Fuel tank nearly full",
+      "commands": {
+        "012F": "41 2F FC"
+      }
+    }
+  }
+}

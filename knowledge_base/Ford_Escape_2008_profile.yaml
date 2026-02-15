@@ -1,0 +1,458 @@
+# Ford Escape 2008 - Vehicle Profile
+# Human-readable descriptions and repair context
+
+vehicle:
+  make: Ford
+  model: Escape
+  year: 2008
+  vin: "1FMCU03Z68KB12969"  # Real vehicle VIN from data collection
+  vin_pattern: "1FM.*"
+  generation: "Second Generation (2008-2012)"
+  engine: "DURATEC-HE / I4 2.3L"
+  transmission: "Automatic"
+  fuel: "Gasoline"
+  odometer: "325588.8 km (202,330 miles)"  # From FORScan IC module
+  engine_options:
+    - "2.3L I4"
+    - "3.0L V6"
+  calibration_id: "QIEF1A6.HEX"  # From Mode 09 PID 04
+  obd_standard: "OBD-II as defined by EPA"  # From PID 1C
+  notes: "Uses CAN 2.0b protocol, HS-CAN for powertrain, MS-CAN for comfort systems"
+  
+  # Real vehicle data collected 2026-02-14
+  tested_with:
+    adapter: "ELM327 v1.5"
+    date: "2026-02-14"
+    voltage: "11.4V"
+    condition: "Engine off, ignition on"
+  
+  # FORScan module discovery 2026-02-15
+  forscan_modules: 13  # Total modules accessible via FORScan
+  forscan_tested: "2026-02-15"
+
+modules:
+  PCM:
+    full_name: "Powertrain Control Module"
+    location: "Engine bay, passenger side firewall"
+    address: "7E0"
+    protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+    accessibility: "FULL"  # Fully accessible via standard OBD-II
+    part_numbers:
+      - "8L8A-12A650-AZA"
+      - "8L8A-12A650-BZA"
+    supported_pids:
+      range_01_20: "BE 3F B8 13"  # Real data from vehicle
+      range_21_40: "C0 17 E0 11"
+      range_41_60: "FC 00 00 00"
+    common_issues:
+      - "Oxygen sensor failures"
+      - "MAF sensor contamination"
+      - "Throttle position sensor drift"
+    diagnostic_notes: |
+      PCM is the main engine control module.
+      Most emissions-related DTCs come from here.
+      Fully accessible via standard OBD-II Mode 01, 03, 07, 09.
+      Supports 20+ live data PIDs.
+      Test response (Mode 03): 43 00 (no DTCs)
+    repair_difficulty: "Easy to Moderate"
+    test_results:
+      accessible: true
+      test_command: "03"
+      test_response: "43 00"
+      notes: "Fully functional, no DTCs present"
+  
+  HVAC:
+    full_name: "Heating, Ventilation, and Air Conditioning Control Module"
+    location: "Behind dashboard, center console area"
+    address: "7A0"
+    protocol: "UDS on MS-CAN"  # Manufacturer-specific, not standard OBD-II
+    accessibility: "NONE"  # Not accessible via standard OBD-II
+    diagnostic_mode: "19"  # Use Mode 19 instead of Mode 03
+    part_numbers:
+      - "8L8Z-19980-A"
+      - "8L8Z-19980-B"
+    common_issues:
+      - "Blend door actuator failure (clicking noise)"
+      - "Mode door stuck (airflow direction issues)"
+      - "Temperature sensor drift"
+    diagnostic_notes: |
+      HVAC module requires manufacturer-specific UDS (Unified Diagnostic Services) commands.
+      Standard OBD-II Mode 03 will NOT work - use Mode 19 for DTC reading.
+      May require vehicle in specific state (ignition on, HVAC system active).
+      Module responds on MS-CAN but uses non-standard diagnostic protocol.
+      Requires FORScan, IDS, or FDRS for diagnostics.
+      Blend door actuator is a common failure point.
+      Listen for clicking sounds when changing temperature.
+      See HVAC_INVESTIGATION.md and HVAC_FINAL_CONCLUSION.md for detailed protocol analysis.
+    repair_difficulty: "Moderate (requires dashboard removal)"
+    status: "requires_manufacturer_procedure"
+    test_results:
+      accessible: false
+      test_command: "03"
+      test_response: "NO DATA"
+      notes: "Does not respond to standard OBD-II queries. Requires FORScan."
+    
+  ABS:
+    full_name: "Anti-Lock Braking System Module"
+    location: "Engine bay, driver side near brake master cylinder"
+    address: "760"
+    protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+    accessibility: "PARTIAL"  # Responds but limited functionality
+    part_numbers:
+      - "8L8Z-2C219-A"
+    common_issues:
+      - "Wheel speed sensor failure"
+      - "ABS pump motor failure"
+      - "Hydraulic unit internal leak"
+    diagnostic_notes: |
+      ABS module requires vehicle stationary for some tests.
+      Wheel speed sensors are common failure points.
+      Responds to queries but returns "service not supported" for Mode 03.
+      This is normal for non-powertrain modules in this vehicle generation.
+      Test response: 7F 03 11 (service not supported)
+      
+      ABS parameters accessible via UDS Service 0x22 (ReadDataByIdentifier):
+      - DID 0x0200: Unknown ABS parameter
+        Response: 62 02 00 00
+        Formula: TBD (needs investigation)
+      
+      - DID 0x0201: Unknown ABS parameter
+        Response: 62 02 02 00
+        Formula: TBD (needs investigation)
+      
+      Additional DIDs to discover (0x0200-0x02FF range):
+      - Wheel speed sensor values
+      - ABS pump status
+      - Brake pressure values
+      - System status flags
+    repair_difficulty: "Difficult (requires brake bleeding)"
+    test_results:
+      accessible: false
+      test_command: "03"
+      test_response: "7F 03 11"
+      notes: "Responds but service not supported (normal for ABS in this vehicle)"
+    uds_working_dids:
+      - did: "0x0200"
+        description: "Unknown ABS Parameter"
+        command: "22 0200"
+        response_example: "62 02 00 00"
+        formula: "TBD"
+        tested: true
+        working: true
+      - did: "0x0202"
+        description: "Unknown ABS Parameter"
+        command: "22 0202"
+        response_example: "62 02 02 00"
+        formula: "TBD"
+        tested: true
+        working: true
+  
+  BCM:
+    full_name: "Body Control Module"
+    location: "Behind dashboard, driver side"
+    address: "726"
+    protocol: "MS-CAN (125 kbaud)"
+    accessibility: "NONE"  # Not accessible via standard OBD-II
+    part_numbers:
+      - "8L8T-14B476-AA"
+    common_issues:
+      - "Door lock actuator failures"
+      - "Window switch failures"
+      - "Interior light issues"
+    diagnostic_notes: |
+      BCM controls body electrical functions.
+      Often requires reprogramming after replacement.
+      Not accessible via standard OBD-II.
+      Requires manufacturer diagnostic tools.
+    repair_difficulty: "Moderate"
+    test_results:
+      accessible: false
+      test_command: "03"
+      test_response: "NO DATA"
+      notes: "Does not respond to standard OBD-II queries"
+  
+  IPC:
+    full_name: "Instrument Panel Cluster"
+    location: "Dashboard, behind instrument panel"
+    address: "733"
+    protocol: "MS-CAN (125 kbaud)"
+    accessibility: "NONE"  # Not accessible via standard OBD-II
+    part_numbers:
+      - "8L8T-10849-AA"
+    common_issues:
+      - "Gauge failures"
+      - "Backlight issues"
+      - "Odometer display problems"
+    diagnostic_notes: |
+      IPC displays vehicle information.
+      Can be tested with self-test mode (hold trip reset while turning key).
+      Not accessible via standard OBD-II.
+    repair_difficulty: "Easy"
+    test_results:
+      accessible: false
+      test_command: "03"
+      test_response: "NO DATA"
+      notes: "Does not respond to standard OBD-II queries"
+  
+  TCM:
+    full_name: "Transmission Control Module (Integrated with PCM)"
+    location: "Engine bay, passenger side firewall (part of PCM)"
+    address: "7E0"  # Same as PCM - transmission controlled by PCM
+    protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+    accessibility: "PARTIAL"  # Some parameters accessible via UDS
+    common_issues:
+      - "Shift solenoid failures"
+      - "Transmission fluid temperature sensor"
+      - "Torque converter clutch issues"
+    diagnostic_notes: |
+      2008 Ford Escape does NOT have separate TCM - transmission is controlled by PCM.
+      Standard OBD-II Mode 01 PIDs do not include transmission parameters.
+      
+      Transmission parameters accessible via UDS Service 0x22 (ReadDataByIdentifier):
+      - DID 0x0100: Transmission Fluid Temperature
+        Response: 62 01 00 XX (where XX is temp value)
+        Formula: (XX hex - 40) = °C
+        Example: 62 01 00 0C → 0x0C = 12 → 12-40 = -28°C (cold engine)
+      
+      - DID 0x0101: Transmission Line Pressure
+        Response: 62 01 01 XX XX (where XX XX is pressure value)
+        Formula: TBD (needs calibration)
+        Example: 62 01 01 01 CD → 0x01CD = 461 decimal
+      
+      Additional DIDs to discover (0x0102-0x01FF range):
+      - Current gear position
+      - Shift solenoid states
+      - Torque converter clutch status
+      - Input/output shaft speeds
+    repair_difficulty: "Moderate to Difficult"
+    test_results:
+      accessible: true
+      test_command: "22 0100"  # UDS ReadDataByIdentifier
+      test_response: "62 01 00 0C"
+      notes: "Transmission parameters accessible via UDS, not standard OBD-II"
+    uds_working_dids:
+      - did: "0x0100"
+        description: "Transmission Fluid Temperature"
+        command: "22 0100"
+        response_example: "62 01 00 0C"
+        formula: "(hex - 40) = °C"
+        tested: true
+        working: true
+      - did: "0x0101"
+        description: "Transmission Line Pressure"
+        command: "22 0101"
+        response_example: "62 01 01 01 CD"
+        formula: "TBD"
+        tested: true
+        working: true
+
+dtc_descriptions:
+  P1632:
+    description: "HVAC Mix Door Actuator Circuit - Stuck"
+    severity: "WARNING"
+    symptoms:
+      - "Temperature control not working"
+      - "Clicking noise from dashboard"
+      - "Air temperature doesn't change"
+      - "Constant hot or cold air regardless of setting"
+    common_causes:
+      - "Blend door actuator motor failure"
+      - "Mechanical obstruction in blend door"
+      - "Wiring harness damage to actuator"
+      - "Actuator gear stripped"
+      - "Blend door linkage broken"
+    diagnostic_steps:
+      - "Listen for clicking noise when changing temperature"
+      - "Test actuator motor resistance (should be 200-400 ohms)"
+      - "Check for binding in door mechanism"
+      - "Verify 12V power supply to actuator"
+      - "Check actuator feedback signal"
+      - "Remove actuator and test manually"
+    repair_hints:
+      - "Actuator located behind glove box"
+      - "Remove glove box for access (4 screws)"
+      - "Disconnect electrical connector before removing actuator"
+      - "Test new actuator before full installation"
+      - "Calibrate actuator after installation"
+    parts_needed:
+      - "Blend door actuator (Motorcraft YH-1800 or equivalent)"
+      - "Electrical connector (if damaged)"
+    estimated_repair_time: "1-2 hours"
+    estimated_cost: "$150-300 (parts + labor)"
+    
+  P1635:
+    description: "HVAC Blend Door Actuator - Stuck/Malfunction"
+    severity: "WARNING"
+    symptoms:
+      - "No temperature control"
+      - "Constant clicking from dashboard"
+      - "HVAC system not responding"
+    common_causes:
+      - "Actuator gear stripped"
+      - "Door linkage broken"
+      - "Actuator motor burned out"
+      - "Electrical short in actuator circuit"
+    diagnostic_steps:
+      - "Remove actuator and test manually"
+      - "Check door movement without actuator"
+      - "Inspect actuator gears for damage"
+      - "Test actuator motor with multimeter"
+    repair_hints:
+      - "Same repair as P1632"
+      - "Check door itself for damage"
+      - "Inspect linkage for breaks"
+    parts_needed:
+      - "Blend door actuator"
+    estimated_repair_time: "1-2 hours"
+    estimated_cost: "$150-300"
+  
+  C1234:
+    description: "ABS Wheel Speed Sensor Circuit Malfunction"
+    severity: "WARNING"
+    symptoms:
+      - "ABS warning light on"
+      - "ABS not functioning"
+      - "Traction control disabled"
+    common_causes:
+      - "Wheel speed sensor failure"
+      - "Damaged sensor wiring"
+      - "Corroded sensor connector"
+      - "Tone ring damage"
+    diagnostic_steps:
+      - "Check sensor resistance (should be 1000-1400 ohms)"
+      - "Inspect sensor for physical damage"
+      - "Check wiring for breaks or shorts"
+      - "Inspect tone ring for damage"
+    repair_hints:
+      - "Sensors located at each wheel hub"
+      - "Clean sensor and mounting surface"
+      - "Check air gap between sensor and tone ring"
+    parts_needed:
+      - "Wheel speed sensor"
+    estimated_repair_time: "0.5-1 hour per sensor"
+    estimated_cost: "$100-200 per sensor"
+  
+  B1234:
+    description: "BCM Door Lock Circuit Malfunction"
+    severity: "CAUTION"
+    symptoms:
+      - "Door locks not working"
+      - "Intermittent lock operation"
+      - "Key fob not working"
+    common_causes:
+      - "Door lock actuator failure"
+      - "Wiring harness damage"
+      - "BCM internal fault"
+    diagnostic_steps:
+      - "Test door lock actuators individually"
+      - "Check wiring for continuity"
+      - "Verify BCM power and ground"
+    repair_hints:
+      - "Test with key fob and manual switch"
+      - "Check fuses first"
+    parts_needed:
+      - "Door lock actuator (if faulty)"
+    estimated_repair_time: "1-2 hours"
+    estimated_cost: "$100-250"
+  
+  U1234:
+    description: "CAN Communication Bus Fault"
+    severity: "DANGER"
+    symptoms:
+      - "Multiple warning lights"
+      - "Modules not communicating"
+      - "Vehicle may not start"
+    common_causes:
+      - "CAN bus wiring damage"
+      - "Module failure causing bus short"
+      - "Termination resistor failure"
+    diagnostic_steps:
+      - "Check CAN bus voltage (should be 2.5V nominal)"
+      - "Disconnect modules one at a time to isolate fault"
+      - "Check termination resistors (120 ohms each end)"
+    repair_hints:
+      - "This is a serious fault - may need professional diagnosis"
+      - "Do not drive vehicle if multiple systems affected"
+    parts_needed:
+      - "Varies depending on fault location"
+    estimated_repair_time: "2-4 hours"
+    estimated_cost: "$200-1000+"
+
+repair_procedures:
+  blend_door_actuator_replacement:
+    title: "HVAC Blend Door Actuator Replacement"
+    difficulty: "Moderate"
+    tools_needed:
+      - "Phillips screwdriver"
+      - "7mm socket"
+      - "Flashlight"
+      - "Multimeter (for testing)"
+    steps:
+      - "Disconnect negative battery terminal (wait 2 minutes)"
+      - "Remove glove box (4 screws at bottom)"
+      - "Locate actuator on HVAC housing (right side)"
+      - "Disconnect electrical connector"
+      - "Remove 3 mounting screws (7mm)"
+      - "Remove old actuator"
+      - "Test new actuator before installation (apply 12V, should move)"
+      - "Install new actuator (3 screws)"
+      - "Reconnect electrical connector"
+      - "Reinstall glove box"
+      - "Reconnect battery"
+      - "Start vehicle and test temperature control"
+      - "Clear DTCs with scan tool"
+    warnings:
+      - "Disconnect battery to avoid airbag deployment"
+      - "Be gentle with plastic clips on glove box"
+      - "Do not force actuator into position"
+    time_estimate: "1-2 hours"
+  
+  wheel_speed_sensor_replacement:
+    title: "ABS Wheel Speed Sensor Replacement"
+    difficulty: "Easy"
+    tools_needed:
+      - "10mm socket"
+      - "Wire brush"
+      - "Brake cleaner"
+      - "Multimeter"
+    steps:
+      - "Raise and support vehicle safely"
+      - "Remove wheel"
+      - "Locate sensor on hub assembly"
+      - "Disconnect electrical connector"
+      - "Remove sensor mounting bolt (10mm)"
+      - "Remove sensor (may need to twist gently)"
+      - "Clean mounting surface with wire brush"
+      - "Apply thin coat of anti-seize to new sensor"
+      - "Install new sensor"
+      - "Tighten mounting bolt (do not overtighten)"
+      - "Reconnect electrical connector"
+      - "Reinstall wheel"
+      - "Lower vehicle"
+      - "Clear DTCs and test drive"
+    warnings:
+      - "Do not damage tone ring on hub"
+      - "Ensure sensor is fully seated"
+      - "Check air gap (should be 0.5-1.5mm)"
+    time_estimate: "0.5-1 hour per sensor"
+
+related_vehicles:
+  - make: Ford
+    model: Fusion
+    years: [2006, 2007, 2008, 2009]
+    notes: "Similar HVAC system, procedures may apply"
+  
+  - make: Ford
+    model: Focus
+    years: [2008, 2009, 2010]
+    notes: "Different actuator location but similar diagnosis"
+  
+  - make: Mercury
+    model: Mariner
+    years: [2008, 2009, 2010, 2011]
+    notes: "Badge-engineered Escape, identical systems"
+  
+  - make: Mazda
+    model: Tribute
+    years: [2008, 2009, 2010, 2011]
+    notes: "Shares platform with Escape, very similar"

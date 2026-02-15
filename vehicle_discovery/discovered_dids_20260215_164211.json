@@ -1,0 +1,29 @@
+{
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008,
+    "vin": "1FMCU03Z68KB12969"
+  },
+  "scan_date": "2026-02-15T16:42:11.419279",
+  "statistics": {
+    "total_tested": 768,
+    "positive_responses": 2,
+    "negative_responses": 766,
+    "no_response": 0
+  },
+  "dids_found": [
+    {
+      "did": 256,
+      "response": "62 01 00 0C \r\r>",
+      "range": "Transmission parameters",
+      "discovered_at": "2026-02-15T16:34:01.065216"
+    },
+    {
+      "did": 257,
+      "response": "62 01 01 01 CE \r\r>",
+      "range": "Transmission parameters",
+      "discovered_at": "2026-02-15T16:34:01.667264"
+    }
+  ]
+}

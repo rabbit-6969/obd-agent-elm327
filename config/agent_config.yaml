@@ -1,0 +1,140 @@
+# AI Vehicle Diagnostic Agent Configuration
+
+# AI Backend Configuration
+ai_backend:
+  # Primary backend (claude, openai, ollama)
+  primary: claude
+  
+  # Fallback backends (tried in order if primary fails)
+  fallbacks:
+    - openai
+    - ollama
+  
+  # API Configuration
+  claude:
+    api_key: ${ANTHROPIC_API_KEY:not_set}  # Environment variable with default
+    model: claude-3-5-sonnet-20241022
+    max_tokens: 4096
+    temperature: 0.7
+  
+  openai:
+    api_key: ${OPENAI_API_KEY:not_set}  # Environment variable with default
+    model: gpt-4
+    max_tokens: 4096
+    temperature: 0.7
+  
+  ollama:
+    host: ${OLLAMA_HOST:http://localhost:11434}  # Default if not set
+    model: llama2
+    temperature: 0.7
+
+# Vehicle Communication Configuration
+vehicle:
+  # COM port for ELM327 adapter
+  port: COM3
+  
+  # Baud rate
+  baud_rate: 38400
+  
+  # Connection timeout (seconds)
+  timeout: 5
+  
+  # Protocol (auto, CAN, ISO, etc.)
+  protocol: auto
+
+# Safety Configuration
+safety:
+  # Confirmation level: none, dangerous_only, all
+  confirmation_level: dangerous_only
+  
+  # Danger classifications
+  danger_levels:
+    read_dtc: SAFE
+    clear_dtc: CAUTION
+    read_data: SAFE
+    actuate_component: WARNING
+    write_ecu: DANGER
+    flash_ecu: DANGER
+  
+  # Require parking brake for dangerous operations
+  require_parking_brake: true
+  
+  # Allow bypass of safety checks (NOT RECOMMENDED)
+  allow_bypass: false
+
+# Web Research Configuration
+web_research:
+  # Mode: ai_assisted, user_fallback, disabled
+  mode: ai_assisted
+  
+  # Fallback to user mode if AI search fails
+  fallback_to_user: true
+  
+  # Search timeout (seconds)
+  timeout: 30
+  
+  # Source prioritization
+  source_priority:
+    - official_manual
+    - repair_database
+    - technical_forum
+    - general_forum
+  
+  # Cross-reference related models
+  cross_reference_models: true
+
+# Knowledge Base Configuration
+knowledge_base:
+  # Path to knowledge base directory
+  path: knowledge_base/
+  
+  # Auto-save learned procedures
+  auto_save: true
+  
+  # Confidence threshold for auto-save (0.0-1.0)
+  auto_save_threshold: 0.8
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: INFO
+  
+  # Log directory
+  directory: logs/
+  
+  # Session log format: jsonl, json, text
+  session_format: jsonl
+  
+  # Log OBD2 traffic
+  log_obd_traffic: true
+  
+  # Rotate logs after size (MB)
+  rotate_size_mb: 10
+  
+  # Keep logs for days
+  retention_days: 30
+
+# Report Configuration
+reports:
+  # Default export format: markdown, json, both
+  default_format: markdown
+  
+  # Include raw responses in reports
+  include_raw_data: true
+  
+  # Include AI interpretations
+  include_ai_analysis: true
+
+# Advanced Configuration
+advanced:
+  # Enable script generation
+  enable_script_generation: true
+  
+  # Script execution timeout (seconds)
+  script_timeout: 60
+  
+  # Enable module discovery
+  enable_module_discovery: true
+  
+  # CAN capture duration (seconds)
+  can_capture_duration: 10

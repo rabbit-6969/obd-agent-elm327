@@ -1,0 +1,42 @@
+{
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008
+  },
+  "scan_date": "2026-02-15T16:50:55.320892",
+  "statistics": {
+    "total_tested": 538,
+    "positive_responses": 4
+  },
+  "systems": {
+    "Transmission/Powertrain": [
+      {
+        "did": 256,
+        "response": "62 01 00 0C \r\r>",
+        "system": "Transmission/Powertrain",
+        "discovered_at": "2026-02-15T16:44:58.357104"
+      },
+      {
+        "did": 257,
+        "response": "62 01 01 01 CE \r\r>",
+        "system": "Transmission/Powertrain",
+        "discovered_at": "2026-02-15T16:44:58.959703"
+      }
+    ],
+    "ABS/Braking System": [
+      {
+        "did": 512,
+        "response": "62 02 00 00 \r\r>",
+        "system": "ABS/Braking System",
+        "discovered_at": "2026-02-15T16:48:00.686271"
+      },
+      {
+        "did": 514,
+        "response": "62 02 02 00 \r\r>",
+        "system": "ABS/Braking System",
+        "discovered_at": "2026-02-15T16:48:01.891719"
+      }
+    ]
+  }
+}

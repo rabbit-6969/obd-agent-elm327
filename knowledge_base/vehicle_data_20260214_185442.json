@@ -1,0 +1,189 @@
+{
+  "timestamp": "20260214_185442",
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008
+  },
+  "adapter": {
+    "version": "ELM327 v1.5",
+    "voltage": 11.4
+  },
+  "modules": {
+    "7E0": {
+      "description": "PCM (Powertrain Control Module)",
+      "accessible": true,
+      "test_response": "43 00"
+    },
+    "7E8": {
+      "description": "PCM Response",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "7E1": {
+      "description": "Transmission",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "7E9": {
+      "description": "Transmission Response",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "7A0": {
+      "description": "HVAC",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "7A8": {
+      "description": "HVAC Response",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "760": {
+      "description": "ABS",
+      "accessible": true,
+      "test_response": "7F 03 11"
+    },
+    "768": {
+      "description": "ABS Response",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "726": {
+      "description": "BCM (Body Control Module)",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "72E": {
+      "description": "BCM Response",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "733": {
+      "description": "IPC (Instrument Panel Cluster)",
+      "accessible": false,
+      "test_response": "No response"
+    },
+    "73B": {
+      "description": "IPC Response",
+      "accessible": false,
+      "test_response": "No response"
+    }
+  },
+  "supported_pids": {
+    "01-20": "41 00 BE 3F B8 13",
+    "21-40": "41 20 C0 17 E0 11",
+    "41-60": "41 40 FC 00 00 00"
+  },
+  "live_data": {
+    "0104": {
+      "description": "Calculated Engine Load",
+      "response": "41 04 00"
+    },
+    "0105": {
+      "description": "Engine Coolant Temperature",
+      "response": "41 05 36"
+    },
+    "0106": {
+      "description": "Short Term Fuel Trim Bank 1",
+      "response": "41 06 80"
+    },
+    "0107": {
+      "description": "Long Term Fuel Trim Bank 1",
+      "response": "41 07 80"
+    },
+    "010C": {
+      "description": "Engine RPM",
+      "response": "41 0C 00 00"
+    },
+    "010D": {
+      "description": "Vehicle Speed",
+      "response": "41 0D 00"
+    },
+    "010E": {
+      "description": "Timing Advance",
+      "response": "41 0E 94"
+    },
+    "010F": {
+      "description": "Intake Air Temperature",
+      "response": "41 0F 44"
+    },
+    "0110": {
+      "description": "MAF Air Flow Rate",
+      "response": "41 10 00 00"
+    },
+    "0111": {
+      "description": "Throttle Position",
+      "response": "41 11 2A"
+    },
+    "0113": {
+      "description": "Oxygen Sensors Present",
+      "response": "41 13 03"
+    },
+    "011C": {
+      "description": "OBD Standards",
+      "response": "41 1C 02"
+    },
+    "011F": {
+      "description": "Run Time Since Engine Start",
+      "response": "41 1F 00 00"
+    },
+    "0121": {
+      "description": "Distance Traveled with MIL On",
+      "response": "41 21 00 00"
+    },
+    "012F": {
+      "description": "Fuel Tank Level Input",
+      "response": "41 2F FC"
+    },
+    "0133": {
+      "description": "Absolute Barometric Pressure",
+      "response": "41 33 62"
+    },
+    "0142": {
+      "description": "Control Module Voltage",
+      "response": "41 42 2D CE"
+    },
+    "0143": {
+      "description": "Absolute Load Value",
+      "response": "41 43 00 00"
+    },
+    "0145": {
+      "description": "Relative Throttle Position",
+      "response": "41 45 00"
+    },
+    "0146": {
+      "description": "Ambient Air Temperature",
+      "response": "41 46 36"
+    }
+  },
+  "dtcs": {
+    "mode_03": "43 00",
+    "mode_07": "47 00",
+    "mode_0A": "7F 0A 11"
+  },
+  "freeze_frames": {},
+  "monitor_status": {
+    "response": "41 01 00 07 E5 00"
+  },
+  "vehicle_connected": true,
+  "vehicle_info": {
+    "0900": {
+      "description": "Supported PIDs",
+      "response": "49 00 55 00 00 00"
+    },
+    "0902": {
+      "description": "VIN",
+      "response": "014 \r0: 49 02 01 31 46 4D \r1: 43 55 30 33 5A 36 38 \r2: 4B 42 31 32 39 36 39"
+    },
+    "0904": {
+      "description": "Calibration ID",
+      "response": "013 \r0: 49 04 01 51 49 45 \r1: 46 31 41 36 2E 48 45 \r2: 58 00 00 00 00 00 00"
+    },
+    "0906": {
+      "description": "Calibration Verification Numbers",
+      "response": "49 06 01 33 13 B7 13"
+    }
+  }
+}
