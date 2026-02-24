@@ -154,14 +154,14 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Return JSON: {"success": true, "cleared": true}
     - _Requirements: 1.3, 6.2_
   
-  - [x] 6.5 Create read_vin.py toolkit script
+  - [x]* 6.5 Create read_vin.py toolkit script
     - Create `toolkit/vehicle_communication/read_vin.py`
     - Extract functionality from existing `vin_reader.py`
     - Accept CLI arg: --port
     - Return JSON: {"success": true, "vin": "1FAHP551XX8156549"}
     - _Requirements: 1.2, 1.3, 2.4_
   
-  - [ ] 6.6 Create can_explore.py toolkit script
+  - [x]* 6.6 Create can_explore.py toolkit script
     - Create `toolkit/vehicle_communication/can_explore.py`
     - Extract functionality from existing `can_bus_explorer.py`
     - Accept CLI args: --port, --duration
@@ -244,7 +244,7 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Define abstract interface: generate_response(), web_search()
     - _Requirements: 13.1, 13.2, 13.3, 13.4_
   
-  - [ ] 10.2 Implement OpenAI backend
+  - [ ]* 10.2 Implement OpenAI backend
     - Create `agent_core/backends/openai_backend.py`
     - Implement OpenAI API calls
     - Handle API key from environment
@@ -256,7 +256,7 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Handle API key from environment
     - _Requirements: 13.2_
   
-  - [ ] 10.4 Implement Ollama backend
+  - [ ]* 10.4 Implement Ollama backend
     - Create `agent_core/backends/ollama_backend.py`
     - Implement local model calls via Ollama API
     - No API key required
@@ -275,20 +275,20 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Test fallback logic
     - _Requirements: 13.4, 13.5_
 
-- [ ] 11. Safety mechanisms
-  - [ ] 11.1 Implement danger classification system
+- [ ]* 11. Safety mechanisms
+  - [ ]* 11.1 Implement danger classification system
     - Create `agent_core/safety.py`
     - Define danger levels: SAFE, CAUTION, WARNING, DANGER
     - Classify operations by danger level
     - _Requirements: 12.1, 12.2, 12.4_
   
-  - [ ] 11.2 Implement confirmation workflows
+  - [ ]* 11.2 Implement confirmation workflows
     - Implement simple confirmation for CAUTION operations
     - Implement detailed confirmation for WARNING operations
     - Implement multi-step confirmation for DANGER operations
     - _Requirements: 12.1, 12.3_
   
-  - [ ] 11.3 Implement safety preconditions
+  - [ ]* 11.3 Implement safety preconditions
     - Check vehicle state before dangerous operations
     - Require parking brake engaged for movement-causing operations
     - Refuse to bypass safety checks
@@ -309,15 +309,15 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
 - [ ] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Actuation command support
-  - [ ] 13.1 Create actuate.py toolkit script
+- [ ]* 13. Actuation command support
+  - [ ]* 13.1 Create actuate.py toolkit script
     - Create `toolkit/vehicle_communication/actuate.py`
     - Accept CLI args: --port, --module, --actuation-type
     - Support EVAP purge, ABS bleeding, HVAC door movement
     - Monitor for error responses during actuation
     - _Requirements: 10.1, 10.3, 10.4_
   
-  - [ ] 13.2 Integrate actuation with safety system
+  - [ ]* 13.2 Integrate actuation with safety system
     - Classify actuations by danger level
     - Require appropriate confirmations before execution
     - Document successful actuations in knowledge base
