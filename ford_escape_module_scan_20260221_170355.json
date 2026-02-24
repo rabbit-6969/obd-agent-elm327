@@ -1,0 +1,21 @@
+{
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008,
+    "engine": "2.3L",
+    "transmission": "CD4E"
+  },
+  "scan_info": {
+    "timestamp": "2026-02-21T17:03:55.619883",
+    "scan_type": "module_focused",
+    "adapter": "ELM327 v1.5"
+  },
+  "modules": {
+    "PCM_Engine": [],
+    "PCM_Transmission": [],
+    "PCM_Basic": [],
+    "PCM_Engineering": []
+  },
+  "known_dids": {}
+}

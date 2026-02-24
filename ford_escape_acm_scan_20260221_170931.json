@@ -1,0 +1,19 @@
+{
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008
+  },
+  "module": {
+    "name": "ACM",
+    "description": "Audio Control Module",
+    "bus": "MS-CAN",
+    "request_address": "0x726",
+    "response_address": "0x72E"
+  },
+  "scan_info": {
+    "timestamp": "2026-02-21T17:09:31.061488",
+    "adapter": "ELM327 v1.5"
+  },
+  "discovered_dids": {}
+}

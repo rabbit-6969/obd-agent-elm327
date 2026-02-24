@@ -1,0 +1,366 @@
+obdb_extracted_parameters:
+  description: Parameters extracted from OBDB community database
+  extraction_date: '2026-02-15'
+  source: https://obdb.community
+  note: Converted from batch template
+  parameters:
+  - pid: ESCAPE_TPMS_WARN
+    name: Tire pressure warning
+    description: Tire pressure warning
+    status: Debugging
+    command:
+      service: '0x22'
+      did: '0x61A5'
+      full_command: 22 61 A5
+      ecu_address: '720'
+    response:
+      format: 62 61 A5 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: boolean
+      data_type: boolean
+      bit_position: 2
+      bit_length: 1
+      byte_index: 0
+      unit: on/off
+    extraction:
+      method: single_bit
+      formula: (response_data[0] >> 2) & 0x01
+      python_code: '# Extract ESCAPE_TPMS_WARN
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        escape_tpms_warn = (data_byte >> 2) & 0x01
+
+        # Result: 0 = off, 1 = on'
+  - pid: ESCAPE_RPM
+    name: Engine speed
+    description: Engine speed
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint16
+      data_type: int16
+      bit_position: 0
+      bit_length: 16
+      byte_index: 0
+      unit: rpm
+    extraction:
+      method: byte_spanning
+      formula: (response_data[0] << 8) | response_data[1]
+      python_code: '# Extract ESCAPE_RPM
+
+        high_byte = response[3]  # Skip 62 XX XX header
+
+        low_byte = response[4]
+
+        raw_value = (high_byte << 8) | low_byte
+
+        # Apply scaling: 0.25
+
+        escape_rpm = raw_value * 0.25
+
+        '
+    scaling:
+      formula: '0.25'
+      unit: rpm
+  - pid: ESCAPE_ECT
+    name: Coolant temperature
+    description: Coolant temperature
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: celsius
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_ECT
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: -40
+
+        escape_ect = raw_value -40
+
+        '
+    scaling:
+      formula: '-40'
+      unit: celsius
+    suggested_metric: engineCoolantTemperature
+  - pid: ESCAPE_VSS
+    name: Vehicle speed
+    description: Vehicle speed
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: km/h
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_VSS
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: 1
+
+        escape_vss = raw_value * 1
+
+        '
+    scaling:
+      formula: '1'
+      unit: km/h
+    suggested_metric: speed
+  - pid: ESCAPE_MAP
+    name: Manifold pressure
+    description: Manifold pressure
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: kPa
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_MAP
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: 1
+
+        escape_map = raw_value * 1
+
+        '
+    scaling:
+      formula: '1'
+      unit: kPa
+  - pid: ESCAPE_IAT_ALT2
+    name: Intake air temperature
+    description: Intake air temperature
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: celsius
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_IAT_ALT2
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: -40
+
+        escape_iat_alt2 = raw_value -40
+
+        '
+    scaling:
+      formula: '-40'
+      unit: celsius
+  - pid: ESCAPE_STFT
+    name: Short term fuel trim
+    description: Short term fuel trim
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: int8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: percent
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_STFT
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: (x-128)*100/128
+
+        escape_stft = raw_value (x-128)*100/128
+
+        '
+    scaling:
+      formula: (x-128)*100/128
+      unit: percent
+    suggested_metric: shortTermFuelTrim
+  - pid: ESCAPE_LTFT
+    name: Long term fuel trim
+    description: Long term fuel trim
+    status: Production
+    command:
+      service: '0x22'
+      did: '0x0000'
+      full_command: 22 00 00
+      ecu_address: 7E0
+    response:
+      format: 62 00 00 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: int8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: percent
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_LTFT
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: (x-128)*100/128
+
+        escape_ltft = raw_value (x-128)*100/128
+
+        '
+    scaling:
+      formula: (x-128)*100/128
+      unit: percent
+  - pid: ESCAPE_TP_FL
+    name: Front left tire pressure
+    description: Front left tire pressure
+    status: Production
+    command:
+      service: '0x22'
+      did: '0xB001'
+      full_command: 22 B0 01
+      ecu_address: '726'
+    response:
+      format: 62 B0 01 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: psi
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_TP_FL
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: 0.363
+
+        escape_tp_fl = raw_value * 0.363
+
+        '
+    scaling:
+      formula: '0.363'
+      unit: psi
+    suggested_metric: frontLeftTirePressure
+  - pid: ESCAPE_TP_FR
+    name: Front right tire pressure
+    description: Front right tire pressure
+    status: Production
+    command:
+      service: '0x22'
+      did: '0xB002'
+      full_command: 22 B0 02
+      ecu_address: '726'
+    response:
+      format: 62 B0 02 [DATA...]
+      data_length: Variable
+    signal_properties:
+      signal_type: uint8
+      data_type: int8
+      bit_position: 0
+      bit_length: 8
+      byte_index: 0
+      unit: psi
+    extraction:
+      method: multi_bit
+      formula: (response_data[0] >> 0) & 0xFF
+      python_code: '# Extract ESCAPE_TP_FR
+
+        data_byte = response[3]  # Skip 62 XX XX header
+
+        raw_value = (data_byte >> 0) & 0xFF
+
+        # Apply scaling: 0.363
+
+        escape_tp_fr = raw_value * 0.363
+
+        '
+    scaling:
+      formula: '0.363'
+      unit: psi
+    suggested_metric: frontRightTirePressure

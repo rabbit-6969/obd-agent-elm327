@@ -1,0 +1,654 @@
+# Ford UDS Services - Complete Reference
+# Based on ISO 14229-1 with Ford-specific extensions
+# FORScan capabilities and module testing/actuation
+
+# Overview
+ford_uds_overview:
+  description: "Ford implements extended UDS services beyond standard OBD-II"
+  standard: "ISO 14229-1 (Unified Diagnostic Services)"
+  ford_extensions: "Manufacturer-specific DIDs, routines, and I/O controls"
+  tools:
+    forscan: "Full access to all Ford UDS services"
+    obdb: "Limited to Service 0x22 (ReadDataByIdentifier) only"
+    standard_obd2: "Limited to Mode 01, 03, 07, 09"
+  
+  note: |
+    OBDB Community provides excellent parameter documentation but only covers
+    reading data (Service 0x22). FORScan can test actuators, run routines,
+    clear codes, and perform module programming using the full UDS suite.
+
+# UDS Services Supported by Ford
+
+uds_services:
+  # Diagnostic and Communication Management
+  - service: "0x10"
+    name: "DiagnosticSessionControl"
+    description: "Switch between diagnostic sessions"
+    ford_support: "Full"
+    forscan_support: true
+    sessions:
+      - id: "0x01"
+        name: "Default Session"
+        description: "Normal operation mode"
+        
+      - id: "0x02"
+        name: "Programming Session"
+        description: "Module reprogramming and calibration"
+        security_required: true
+        
+      - id: "0x03"
+        name: "Extended Diagnostic Session"
+        description: "Access to extended diagnostics and tests"
+        timeout: "5 seconds (P3 timing)"
+        
+      - id: "0x40-0x5F"
+        name: "Manufacturer Specific Sessions"
+        description: "Ford-specific diagnostic modes"
+        
+    usage: |
+      Required before accessing certain DIDs, routines, or I/O controls.
+      Example: Switch to extended session before running actuator tests.
+      
+    example_command: "10 03"  # Enter extended diagnostic session
+    example_response: "50 03 00 32 01 F4"  # Positive response with timing
+    
+  - service: "0x11"
+    name: "ECUReset"
+    description: "Reset ECU to various states"
+    ford_support: "Full"
+    forscan_support: true
+    reset_types:
+      - id: "0x01"
+        name: "Hard Reset"
+        description: "Power cycle equivalent"
+        
+      - id: "0x02"
+        name: "Key Off/On Reset"
+        description: "Simulates ignition cycle"
+        
+      - id: "0x03"
+        name: "Soft Reset"
+        description: "Software reset without power cycle"
+        
+    usage: "Apply configuration changes, clear learned values, recover from errors"
+    warning: "May clear adaptive values and require relearning procedures"
+    
+  - service: "0x14"
+    name: "ClearDiagnosticInformation"
+    description: "Clear DTCs and related data"
+    ford_support: "Full"
+    forscan_support: true
+    clears:
+      - "Diagnostic Trouble Codes (DTCs)"
+      - "Freeze frame data"
+      - "Readiness monitors status"
+      - "Distance/time since codes cleared"
+      
+    example_command: "14 FF FF FF"  # Clear all DTCs
+    example_response: "54"  # Positive response
+    
+    note: |
+      Standard OBD-II Mode 04 also clears codes but with less control.
+      UDS Service 0x14 allows selective clearing by DTC group.
+
+  # Data Transmission
+  - service: "0x22"
+    name: "ReadDataByIdentifier"
+    description: "Read data values by DID"
+    ford_support: "Extensive"
+    forscan_support: true
+    obdb_coverage: "Primary focus - 113+ parameters documented"
+    
+    did_ranges:
+      standard:
+        - range: "0x0000-0x00FF"
+          description: "ISO 14229 standard DIDs"
+          
+        - range: "0xF100-0xF1FF"
+          description: "Vehicle manufacturer specific"
+          
+        - range: "0xF200-0xF2FF"
+          description: "Network configuration"
+          
+      ford_specific:
+        - range: "0x0100-0x01FF"
+          description: "Transmission parameters"
+          examples:
+            - "0x0100: Transmission fluid temperature"
+            - "0x0101: Transmission line pressure"
+            
+        - range: "0x0200-0x02FF"
+          description: "ABS/Brake parameters"
+          examples:
+            - "0x0200: ABS parameter"
+            - "0x0202: ABS parameter"
+            
+        - range: "0x61A5"
+          description: "TPMS warning flag"
+          module: "BCM (0x726)"
+          
+        - range: "0xB001-0xB006"
+          description: "Individual tire pressures"
+          module: "BCM (0x726)"
+          
+    usage: |
+      Most common UDS service for diagnostics.
+      OBDB documents 113+ Ford Escape DIDs.
+      FORScan can discover additional undocumented DIDs.
+      
+    example_command: "22 61 A5"  # Read TPMS warning
+    example_response: "62 61 A5 04"  # Positive response with data
+
+  - service: "0x23"
+    name: "ReadMemoryByAddress"
+    description: "Read ECU memory directly"
+    ford_support: "Limited"
+    forscan_support: true
+    security_required: true
+    usage: "Advanced diagnostics, memory dumps, reverse engineering"
+    warning: "Requires security access, may be restricted"
+
+  - service: "0x27"
+    name: "SecurityAccess"
+    description: "Unlock protected functions"
+    ford_support: "Full"
+    forscan_support: true
+    
+    levels:
+      - level: "0x01"
+        name: "Request Seed (Level 1)"
+        description: "Get challenge for basic security"
+        
+      - level: "0x02"
+        name: "Send Key (Level 1)"
+        description: "Respond with calculated key"
+        
+      - level: "0x03-0x7E"
+        name: "Additional Security Levels"
+        description: "Higher security for programming, calibration"
+        
+    usage: |
+      Required for:
+      - Module programming
+      - Calibration changes
+      - Some actuator tests
+      - Memory writes
+      - Configuration changes
+      
+    algorithm: "Proprietary Ford seed-key algorithm"
+    note: "FORScan implements Ford's security algorithm"
+
+  - service: "0x28"
+    name: "CommunicationControl"
+    description: "Enable/disable message transmission"
+    ford_support: "Full"
+    forscan_support: true
+    usage: "Prevent interference during programming or testing"
+
+  # Input/Output Control
+  - service: "0x2E"
+    name: "WriteDataByIdentifier"
+    description: "Write configuration data"
+    ford_support: "Full"
+    forscan_support: true
+    security_required: true
+    
+    usage: |
+      Modify ECU configuration:
+      - VIN programming
+      - Module configuration
+      - Calibration values
+      - Feature enables/disables
+      
+    example: "Program VIN, enable/disable features, set module parameters"
+    warning: "Incorrect writes can damage module or cause malfunctions"
+
+  - service: "0x2F"
+    name: "InputOutputControlByIdentifier"
+    description: "Control actuators and outputs"
+    ford_support: "Extensive"
+    forscan_support: true
+    
+    control_types:
+      - id: "0x00"
+        name: "Return Control To ECU"
+        description: "Stop manual control"
+        
+      - id: "0x01"
+        name: "Reset To Default"
+        description: "Reset to default state"
+        
+      - id: "0x02"
+        name: "Freeze Current State"
+        description: "Hold current value"
+        
+      - id: "0x03"
+        name: "Short Term Adjustment"
+        description: "Temporarily override value"
+        
+    ford_actuators:
+      hvac:
+        - "Blend door actuator"
+        - "Mode door actuator"
+        - "Recirculation door"
+        - "A/C compressor clutch"
+        
+      engine:
+        - "Fuel pump"
+        - "Cooling fan"
+        - "VCT solenoids"
+        - "EVAP purge valve"
+        - "EGR valve"
+        
+      transmission:
+        - "Shift solenoids"
+        - "TCC solenoid"
+        - "Line pressure control"
+        
+      body:
+        - "Door locks"
+        - "Windows"
+        - "Lights"
+        - "Horn"
+        
+      abs:
+        - "ABS pump"
+        - "Solenoid valves"
+        
+    usage: |
+      FORScan "Actuator Tests" use this service.
+      Allows testing components without physical access.
+      Useful for diagnosing stuck actuators, wiring issues.
+      
+    example_command: "2F 12 34 03 FF"  # Control actuator 0x1234
+    example_response: "6F 12 34"  # Positive response
+    
+    safety_note: |
+      Some actuators are safety-critical (brakes, steering).
+      Ford may restrict access or require specific conditions.
+      Always ensure vehicle is safe before actuator tests.
+
+  # Routine Control
+  - service: "0x31"
+    name: "RoutineControl"
+    description: "Execute diagnostic routines"
+    ford_support: "Extensive"
+    forscan_support: true
+    
+    sub_functions:
+      - id: "0x01"
+        name: "Start Routine"
+        description: "Begin routine execution"
+        
+      - id: "0x02"
+        name: "Stop Routine"
+        description: "Halt running routine"
+        
+      - id: "0x03"
+        name: "Request Routine Results"
+        description: "Get routine status/results"
+        
+    ford_routines:
+      self_tests:
+        - id: "0x0001"
+          name: "Module Self-Test"
+          description: "Comprehensive module diagnostics"
+          
+        - id: "0x0002"
+          name: "Sensor Test"
+          description: "Test sensor operation"
+          
+      calibration:
+        - id: "0x0100"
+          name: "Throttle Learn"
+          description: "Calibrate throttle position"
+          
+        - id: "0x0101"
+          name: "Steering Angle Calibration"
+          description: "Zero steering angle sensor"
+          
+      system_tests:
+        - id: "0x0200"
+          name: "EVAP System Test"
+          description: "Test evaporative emissions system"
+          
+        - id: "0x0201"
+          name: "Catalyst Monitor"
+          description: "Force catalyst efficiency test"
+          
+      actuator_tests:
+        - id: "0x0300"
+          name: "Injector Balance Test"
+          description: "Test fuel injector operation"
+          
+        - id: "0x0301"
+          name: "Cylinder Contribution Test"
+          description: "Measure individual cylinder power"
+          
+    usage: |
+      FORScan "Service Functions" menu uses routines.
+      Examples:
+      - DPF regeneration
+      - Brake bleeding
+      - Throttle adaptation
+      - Steering angle reset
+      - Battery registration
+      
+    example_command: "31 01 01 00"  # Start routine 0x0100
+    example_response: "71 01 01 00"  # Routine started
+    
+    note: |
+      Routine IDs are module and vehicle specific.
+      FORScan database contains known Ford routines.
+      Some routines require specific conditions (engine running, vehicle stationary).
+
+  # Data Transfer
+  - service: "0x34"
+    name: "RequestDownload"
+    description: "Prepare for data download to ECU"
+    ford_support: "Full"
+    forscan_support: true
+    security_required: true
+    usage: "Module programming, calibration updates"
+
+  - service: "0x36"
+    name: "TransferData"
+    description: "Transfer data blocks"
+    ford_support: "Full"
+    forscan_support: true
+    usage: "Send firmware/calibration data"
+
+  - service: "0x37"
+    name: "RequestTransferExit"
+    description: "Complete data transfer"
+    ford_support: "Full"
+    forscan_support: true
+    usage: "Finalize programming operation"
+
+  # Diagnostic Trouble Codes
+  - service: "0x19"
+    name: "ReadDTCInformation"
+    description: "Read diagnostic trouble codes"
+    ford_support: "Full"
+    forscan_support: true
+    
+    sub_functions:
+      - id: "0x01"
+        name: "Report Number Of DTCs By Status Mask"
+        
+      - id: "0x02"
+        name: "Report DTC By Status Mask"
+        description: "Read DTCs matching criteria"
+        
+      - id: "0x04"
+        name: "Report DTC Snapshot Record"
+        description: "Freeze frame data"
+        
+      - id: "0x06"
+        name: "Report DTC Extended Data"
+        description: "Additional DTC information"
+        
+    usage: |
+      More detailed than OBD-II Mode 03.
+      Can read:
+      - Pending codes
+      - Permanent codes
+      - Historical codes
+      - Freeze frame data
+      - Failure counters
+      
+    example_command: "19 02 FF"  # Read all DTCs
+    example_response: "59 02 [DTC data]"
+
+# Ford Module Capabilities
+
+ford_module_capabilities:
+  PCM:
+    address: "0x7E0"
+    services_supported:
+      - "0x10 - Diagnostic Session Control"
+      - "0x11 - ECU Reset"
+      - "0x14 - Clear DTCs"
+      - "0x19 - Read DTCs"
+      - "0x22 - Read Data (90+ DIDs)"
+      - "0x27 - Security Access"
+      - "0x2E - Write Data"
+      - "0x2F - I/O Control"
+      - "0x31 - Routine Control"
+      
+    actuator_tests:
+      - "Fuel pump control"
+      - "Cooling fan control"
+      - "VCT solenoid test"
+      - "EVAP purge valve"
+      - "Injector balance test"
+      - "Ignition coil test"
+      
+    routines:
+      - "Throttle learn procedure"
+      - "Misfire monitor test"
+      - "EVAP system test"
+      - "Catalyst monitor"
+      - "O2 sensor test"
+      
+  BCM:
+    address: "0x726"
+    services_supported:
+      - "0x10 - Diagnostic Session Control"
+      - "0x14 - Clear DTCs"
+      - "0x19 - Read DTCs"
+      - "0x22 - Read Data (10+ DIDs)"
+      - "0x2F - I/O Control"
+      - "0x31 - Routine Control"
+      
+    actuator_tests:
+      - "Door lock/unlock"
+      - "Window control"
+      - "Horn test"
+      - "Light control (all lights)"
+      - "Wiper control"
+      
+    routines:
+      - "TPMS sensor learn"
+      - "Remote key programming"
+      - "Module configuration"
+      
+  ABS:
+    address: "0x760"
+    services_supported:
+      - "0x10 - Diagnostic Session Control"
+      - "0x14 - Clear DTCs"
+      - "0x19 - Read DTCs"
+      - "0x22 - Read Data (9+ DIDs)"
+      - "0x2F - I/O Control"
+      - "0x31 - Routine Control"
+      
+    actuator_tests:
+      - "ABS pump test"
+      - "Solenoid valve test"
+      - "Wheel speed sensor test"
+      
+    routines:
+      - "Brake bleeding procedure"
+      - "ABS self-test"
+      - "Steering angle calibration"
+      
+  HVAC:
+    address: "0x7A0"
+    services_supported:
+      - "0x10 - Diagnostic Session Control"
+      - "0x19 - Read DTCs (Mode 19, not Mode 03)"
+      - "0x22 - Read Data (limited)"
+      - "0x2F - I/O Control"
+      - "0x31 - Routine Control"
+      
+    actuator_tests:
+      - "Blend door actuator"
+      - "Mode door actuator"
+      - "Recirculation door"
+      - "A/C compressor clutch"
+      
+    routines:
+      - "HVAC self-calibration"
+      - "Actuator position learn"
+      
+    note: |
+      HVAC module uses non-standard protocol.
+      Requires FORScan or manufacturer tools.
+      Standard OBD-II Mode 03 does NOT work.
+
+# FORScan Capabilities
+
+forscan_capabilities:
+  description: "What FORScan can do that OBDB cannot"
+  
+  reading:
+    - "All Service 0x22 DIDs (same as OBDB)"
+    - "Module identification (VIN, part numbers, software versions)"
+    - "DTCs with extended data and freeze frames"
+    - "Live data from all modules simultaneously"
+    - "Configuration data (as-built data)"
+    
+  testing:
+    - "Actuator tests (Service 0x2F)"
+    - "Routine execution (Service 0x31)"
+    - "Self-tests and calibrations"
+    - "Component activation"
+    
+  programming:
+    - "Module configuration (as-built programming)"
+    - "Feature enable/disable"
+    - "VIN programming"
+    - "Module replacement procedures"
+    - "Calibration updates (with appropriate files)"
+    
+  clearing:
+    - "Clear DTCs (Service 0x14)"
+    - "Reset adaptive values"
+    - "Clear learned parameters"
+    
+  advanced:
+    - "Security access (seed-key)"
+    - "Extended diagnostic sessions"
+    - "Module reset and recovery"
+    - "CAN bus monitoring"
+    - "Custom PID creation"
+
+# Comparison: OBDB vs FORScan
+
+comparison:
+  obdb:
+    strengths:
+      - "Excellent parameter documentation"
+      - "Cross-vehicle database"
+      - "Community contributions"
+      - "Free and open"
+      
+    limitations:
+      - "Read-only (Service 0x22 only)"
+      - "No actuator tests"
+      - "No routine execution"
+      - "No module programming"
+      - "No security access"
+      
+    best_for:
+      - "Understanding available parameters"
+      - "Learning UDS commands"
+      - "Building diagnostic tools"
+      - "Parameter reference"
+      
+  forscan:
+    strengths:
+      - "Full UDS implementation"
+      - "Actuator tests"
+      - "Routine execution"
+      - "Module programming"
+      - "Security access"
+      - "Ford-specific features"
+      
+    limitations:
+      - "Windows only"
+      - "Requires compatible adapter"
+      - "Some features require license"
+      - "Less documentation than OBDB"
+      
+    best_for:
+      - "Complete diagnostics"
+      - "Module testing"
+      - "Configuration changes"
+      - "Professional repairs"
+
+# Integration Strategy
+
+integration_strategy:
+  recommendation: "Use both OBDB and FORScan knowledge"
+  
+  obdb_for:
+    - "Parameter discovery and documentation"
+    - "DID identification"
+    - "Bit-level extraction details"
+    - "Cross-reference and validation"
+    
+  forscan_for:
+    - "Routine IDs and procedures"
+    - "Actuator test capabilities"
+    - "Module-specific features"
+    - "Security requirements"
+    - "Configuration data"
+    
+  ai_agent_implementation:
+    read_parameters:
+      source: "OBDB documentation"
+      service: "0x22 ReadDataByIdentifier"
+      implementation: "Already covered in knowledge base"
+      
+    test_actuators:
+      source: "FORScan capabilities"
+      service: "0x2F InputOutputControlByIdentifier"
+      implementation: "Needs documentation"
+      
+    run_routines:
+      source: "FORScan database"
+      service: "0x31 RoutineControl"
+      implementation: "Needs documentation"
+      
+    clear_codes:
+      source: "Standard UDS"
+      service: "0x14 ClearDiagnosticInformation"
+      implementation: "Straightforward"
+
+# Next Steps for Knowledge Base
+
+next_steps:
+  priority_1:
+    - "Document common Ford routines (Service 0x31)"
+    - "List actuator test procedures (Service 0x2F)"
+    - "Add module-specific capabilities"
+    
+  priority_2:
+    - "Security access procedures"
+    - "Extended session requirements"
+    - "Module programming basics"
+    
+  priority_3:
+    - "Advanced diagnostics"
+    - "Custom routine creation"
+    - "Reverse engineering techniques"
+
+# Resources
+
+resources:
+  standards:
+    - "ISO 14229-1: UDS specification"
+    - "ISO 15765-4: CAN protocol"
+    - "SAE J1979: OBD-II standard"
+    
+  ford_specific:
+    - "FORScan documentation"
+    - "Ford service manuals"
+    - "FDRS (Ford Diagnostic and Repair System)"
+    
+  community:
+    - "FORScan forum: https://forscan.org/forum"
+    - "OBDB Community: https://obdb.community"
+    - "Ford-specific forums and wikis"

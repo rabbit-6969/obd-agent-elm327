@@ -1,0 +1,9 @@
+720ESCAPE_TPMS_WARNTire pressure warningDebugging——Signal DetailsTire pressure warningESCAPE_TPMS_WARNDebuggingSignal PropertiesSignal Type:offonBit Position:2 to 2Bit Length:1Scaling:Unit: offonCommand InvocationECU:720Command:2261A5
+
+7E0ESCAPE_RPMEngine speed——Signal DetailsEngine speedESCAPE_RPMProductionSignal PropertiesSignal Type:uint16Bit Position:0 to 15Bit Length:16Scaling:0.25Unit: rpmCommand InvocationECU:7E0Command:220C
+
+7E0ESCAPE_ECTCoolant temperature—engineCoolantTemperatureSignal DetailsCoolant temperatureESCAPE_ECTProductionSignal PropertiesSignal Type:uint8Bit Position:0 to 7Bit Length:8Scaling:-40Unit: celsiusCommand InvocationECU:7E0Command:2205Suggested Metric:engineCoolantTemperature
+
+726ESCAPE_BATT_SOCBattery charge——Signal DetailsBattery chargeESCAPE_BATT_SOCDebuggingSignal PropertiesSignal Type:uint8Bit Position:0 to 7Bit Length:8Scaling:1Unit: percentCommand InvocationECU:726Command:225B01
+
+760ESCAPE_FL_VSSFront left wheel speed——Signal DetailsFront left wheel speedESCAPE_FL_VSSProductionSignal PropertiesSignal Type:uint16Bit Position:0 to 15Bit Length:16Scaling:0.01Unit: km/hCommand InvocationECU:760Command:22B001

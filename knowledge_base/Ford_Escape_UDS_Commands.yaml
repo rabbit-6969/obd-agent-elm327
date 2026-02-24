@@ -1,0 +1,866 @@
+# Ford Escape - UDS Command Reference
+# Low-level diagnostic commands with bit-level parameter extraction
+# Source: OBDB Community detailed signal specifications
+
+# UDS Command Structure
+uds_protocol:
+  service: "0x22"
+  service_name: "ReadDataByIdentifier"
+  description: "Read data values by their Data Identifier (DID)"
+  request_format: "22 [DID_HIGH] [DID_LOW]"
+  response_format: "62 [DID_HIGH] [DID_LOW] [DATA...]"
+  notes: |
+    Ford uses UDS Service 0x22 for manufacturer-specific parameters.
+    Response starts with 0x62 (positive response) followed by DID echo and data bytes.
+
+# Bit Extraction Methods
+bit_extraction:
+  description: "How to extract multi-bit values from response bytes"
+  methods:
+    single_bit:
+      description: "Extract a single bit flag (on/off, true/false)"
+      formula: "(byte >> bit_position) & 0x01"
+      example: "Bit 2 of byte 0: (response[0] >> 2) & 0x01"
+      
+    multi_bit:
+      description: "Extract multi-bit value spanning within one byte"
+      formula: "(byte >> start_bit) & ((1 << bit_length) - 1)"
+      example: "Bits 2-4 (3 bits): (response[0] >> 2) & 0x07"
+      
+    byte_spanning:
+      description: "Extract value spanning multiple bytes"
+      formula: "Combine bytes using bit shifts"
+      example: "16-bit value: (response[0] << 8) | response[1]"
+
+# Detailed Parameter Specifications
+
+# Body Control Module (BCM) - Address 0x720
+bcm_parameters:
+  ecu_address: "720"
+  ecu_name: "Body Control Module"
+  protocol: "MS-CAN (125 kbaud)"
+  
+  parameters:
+    - pid: "ESCAPE_TPMS_WARN"
+      name: "Tire Pressure Warning Indicator"
+      description: "TPMS warning light status"
+      status: "Debugging"
+      
+      command:
+        service: "0x22"
+        did: "0x61A5"
+        full_command: "22 61 A5"
+        ecu_address: "720"
+        
+      response:
+        format: "62 61 A5 [DATA_BYTE_0] [DATA_BYTE_1]..."
+        data_length: "Variable"
+        
+      signal_properties:
+        signal_type: "on/off"
+        data_type: "boolean"
+        bit_position: 2
+        bit_length: 1
+        byte_index: 0
+        
+      extraction:
+        method: "single_bit"
+        formula: "(response_data[0] >> 2) & 0x01"
+        python_code: |
+          # Extract TPMS warning bit
+          data_byte = response[3]  # Skip 62 61 A5 header
+          tpms_warn = (data_byte >> 2) & 0x01
+          # Result: 0 = no warning, 1 = warning active
+        
+      interpretation:
+        0: "No TPMS warning"
+        1: "TPMS warning active - low tire pressure detected"
+        
+      related_parameters:
+        - "ESCAPE_TP_FL"
+        - "ESCAPE_TP_FR"
+        - "ESCAPE_TP_RLO"
+        - "ESCAPE_TP_RRO"
+        
+      diagnostic_use: |
+        Check this flag first when diagnosing TPMS issues.
+        If flag is set, check individual tire pressures to identify which tire(s) are low.
+        
+      cross_vehicle_compatibility:
+        - model: "Edge"
+          pid: "EDGE_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "F-150"
+          pid: "F150_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "F-150 Lightning"
+          pid: "F150LIGHTNING_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "Fiesta"
+          pid: "FIESTA_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "Taurus"
+          pid: "TAURUS_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "Focus"
+          pid: "FOCUS_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+          
+        - model: "Fusion Energi"
+          pid: "FUSIONENERGI_TPMS_WARN"
+          bits: "2-2"
+          compatible: true
+
+# Command Examples with Full Byte Breakdown
+command_examples:
+  tpms_warning_read:
+    description: "Read TPMS warning status from BCM"
+    
+    step_1_send_command:
+      description: "Send UDS ReadDataByIdentifier request"
+      can_id: "0x720"
+      data: "22 61 A5"
+      breakdown:
+        byte_0: "0x22 - Service (ReadDataByIdentifier)"
+        byte_1: "0x61 - DID high byte"
+        byte_2: "0xA5 - DID low byte"
+        
+    step_2_receive_response:
+      description: "Receive response from BCM"
+      can_id: "0x728"  # Response ID (request + 8)
+      example_data: "62 61 A5 04"
+      breakdown:
+        byte_0: "0x62 - Positive response"
+        byte_1: "0x61 - DID high byte (echo)"
+        byte_2: "0xA5 - DID low byte (echo)"
+        byte_3: "0x04 - Data byte containing flags"
+        
+    step_3_extract_bit:
+      description: "Extract bit 2 from data byte"
+      data_byte: "0x04"
+      binary: "0000 0100"
+      bit_positions: "7654 3210"
+      bit_2_value: "1"
+      result: "TPMS warning is ACTIVE"
+      
+    alternative_response:
+      example_data: "62 61 A5 00"
+      data_byte: "0x00"
+      binary: "0000 0000"
+      bit_2_value: "0"
+      result: "TPMS warning is INACTIVE"
+
+# Bit Mapping Visualization Template
+bit_mapping_template:
+  description: "Visual representation of byte structure"
+  byte_structure:
+    bit_7: "MSB (Most Significant Bit)"
+    bit_6: "..."
+    bit_5: "..."
+    bit_4: "..."
+    bit_3: "..."
+    bit_2: "TPMS_WARN flag"
+    bit_1: "..."
+    bit_0: "LSB (Least Significant Bit)"
+    
+  example_byte_0x04:
+    binary: "0000 0100"
+    bits:
+      7: 0
+      6: 0
+      5: 0
+      4: 0
+      3: 0
+      2: 1  # TPMS warning bit
+      1: 0
+      0: 0
+
+# Implementation Guidelines
+implementation_guidelines:
+  python_example: |
+    import can
+    
+    def read_tpms_warning(bus, ecu_address=0x720):
+        """
+        Read TPMS warning status from BCM
+        
+        Args:
+            bus: python-can bus object
+            ecu_address: BCM address (default 0x720)
+            
+        Returns:
+            bool: True if TPMS warning active, False otherwise
+        """
+        # Send UDS request
+        msg = can.Message(
+            arbitration_id=ecu_address,
+            data=[0x22, 0x61, 0xA5],
+            is_extended_id=False
+        )
+        bus.send(msg)
+        
+        # Wait for response (address + 8)
+        response = bus.recv(timeout=1.0)
+        
+        if response and response.arbitration_id == (ecu_address + 8):
+            # Check for positive response
+            if response.data[0] == 0x62:
+                # Extract data byte (skip 62 61 A5 header)
+                data_byte = response.data[3]
+                
+                # Extract bit 2
+                tpms_warn = (data_byte >> 2) & 0x01
+                
+                return bool(tpms_warn)
+        
+        return None  # No response or error
+    
+    # Usage
+    bus = can.interface.Bus(channel='can0', bustype='socketcan')
+    warning_active = read_tpms_warning(bus)
+    print(f"TPMS Warning: {'ACTIVE' if warning_active else 'INACTIVE'}")
+    
+  elm327_example: |
+    # Using ELM327 adapter
+    import obd
+    
+    # Connect to vehicle
+    connection = obd.OBD()
+    
+    # Send raw UDS command to BCM
+    # Note: ELM327 may need to be configured for correct CAN ID
+    
+    # Set header to BCM address
+    connection.send_command("AT SH 720")
+    
+    # Send UDS request
+    response = connection.send_command("22 61 A5")
+    
+    # Parse response
+    if response and len(response) >= 4:
+        data_byte = response[3]
+        tpms_warn = (data_byte >> 2) & 0x01
+        print(f"TPMS Warning: {tpms_warn}")
+
+# Error Handling
+error_responses:
+  negative_response:
+    format: "7F [SERVICE] [NRC]"
+    example: "7F 22 31"
+    breakdown:
+      byte_0: "0x7F - Negative response indicator"
+      byte_1: "0x22 - Service that failed"
+      byte_2: "0x31 - Negative Response Code (NRC)"
+      
+  common_nrcs:
+    0x11:
+      name: "serviceNotSupported"
+      description: "ECU does not support this service"
+      
+    0x12:
+      name: "subFunctionNotSupported"
+      description: "Sub-function not supported"
+      
+    0x13:
+      name: "incorrectMessageLengthOrInvalidFormat"
+      description: "Message format error"
+      
+    0x22:
+      name: "conditionsNotCorrect"
+      description: "Preconditions not met (e.g., vehicle must be stationary)"
+      
+    0x31:
+      name: "requestOutOfRange"
+      description: "DID not supported by this ECU"
+      
+    0x33:
+      name: "securityAccessDenied"
+      description: "Security access required"
+      
+    0x78:
+      name: "requestCorrectlyReceived-ResponsePending"
+      description: "ECU is processing, wait for final response"
+
+# Multi-Byte Parameter Example Template
+multi_byte_parameter_template:
+  description: "Template for parameters requiring multiple bytes"
+  
+  example_16bit_value:
+    pid: "EXAMPLE_TEMP"
+    command: "22 01 00"
+    response: "62 01 00 [HIGH_BYTE] [LOW_BYTE]"
+    
+    extraction:
+      method: "16-bit unsigned integer"
+      formula: "(high_byte << 8) | low_byte"
+      python_code: |
+        high_byte = response[3]
+        low_byte = response[4]
+        raw_value = (high_byte << 8) | low_byte
+        
+    scaling:
+      formula: "(raw_value - offset) * scale"
+      example: "(raw_value - 40) * 1.0  # Temperature in °C"
+
+# Best Practices
+best_practices:
+  timing:
+    description: "Respect ECU timing requirements"
+    recommendations:
+      - "Wait at least 50ms between requests to same ECU"
+      - "Allow up to 1000ms for response"
+      - "Handle 0x78 (ResponsePending) by waiting longer"
+      
+  error_handling:
+    description: "Robust error handling"
+    recommendations:
+      - "Always check for negative responses (0x7F)"
+      - "Validate response length before parsing"
+      - "Verify DID echo matches request"
+      - "Handle timeout gracefully"
+      
+  security:
+    description: "Some DIDs require security access"
+    recommendations:
+      - "Check if DID requires unlocked session"
+      - "Use Service 0x27 (SecurityAccess) if needed"
+      - "Some parameters only available in extended diagnostic session"
+      
+  can_bus_management:
+    description: "Proper CAN bus usage"
+    recommendations:
+      - "Don't flood the bus with rapid requests"
+      - "Monitor bus load"
+      - "Use appropriate CAN ID filtering"
+      - "Handle bus-off conditions"
+
+# Testing and Validation
+testing_procedures:
+  verify_command:
+    description: "Steps to verify a new UDS command"
+    steps:
+      - "Send command with known good tool (FORScan, professional scanner)"
+      - "Capture CAN traffic to verify exact bytes"
+      - "Document response format and data length"
+      - "Test with multiple vehicles if possible"
+      - "Verify bit positions by changing vehicle state"
+      
+  validate_extraction:
+    description: "Verify bit extraction is correct"
+    steps:
+      - "Compare extracted value with known good tool"
+      - "Test with parameter in different states"
+      - "Verify scaling and units"
+      - "Check edge cases (min/max values)"
+
+# Documentation Standards
+documentation_standards:
+  required_fields:
+    - "PID name and description"
+    - "ECU address"
+    - "Full UDS command"
+    - "Response format"
+    - "Bit position and length"
+    - "Extraction formula"
+    - "Data type and units"
+    - "Interpretation/scaling"
+    
+  optional_fields:
+    - "Cross-vehicle compatibility"
+    - "Related parameters"
+    - "Diagnostic use cases"
+    - "Known issues or limitations"
+    - "Testing status"
+
+# Powertrain Control Module (PCM) - Address 0x7E0
+# Transmission parameters (CD4E transmission integrated into PCM)
+pcm_transmission_parameters:
+  ecu_address: "7E0"
+  ecu_name: "Powertrain Control Module"
+  protocol: "HS-CAN (500 kbaud)"
+  notes: |
+    2008 Ford Escape has NO separate TCM - transmission is PCM-controlled.
+    All transmission DIDs accessed via PCM at 0x7E0/0x7E8.
+  
+  parameters:
+    - pid: "ESCAPE_ATF_TEMP"
+      name: "Automatic Transmission Fluid Temperature"
+      description: "Current ATF temperature in degrees Celsius"
+      status: "Production"
+      
+      command:
+        service: "0x22"
+        did: "0x221E1C"
+        full_command: "22 1E 1C"
+        ecu_address: "7E0"
+        
+      response:
+        format: "62 1E 1C [TEMP_BYTE]"
+        data_length: "1 byte"
+        
+      signal_properties:
+        signal_type: "temperature"
+        data_type: "uint8"
+        byte_index: 0
+        
+      extraction:
+        method: "single_byte"
+        formula: "temp_byte - 40"
+        python_code: |
+          # Extract ATF temperature
+          temp_raw = response[3]  # Skip 62 1E 1C header
+          temp_celsius = temp_raw - 40
+          # Result: Temperature in °C
+        
+      scaling:
+        formula: "raw_value - 40"
+        unit: "°C"
+        range: "-40°C to 215°C"
+        
+      interpretation:
+        normal_range: "70-95°C during normal operation"
+        cold: "< 40°C - transmission in warm-up mode"
+        hot: "> 110°C - potential overheating"
+        critical: "> 130°C - immediate attention required"
+        
+      diagnostic_use: |
+        Monitor ATF temperature during:
+        - Towing or heavy loads
+        - Hot weather operation
+        - Transmission slipping diagnosis
+        - Cooling system verification
+        
+      related_parameters:
+        - "ESCAPE_TURBINE_SPEED"
+        - "ESCAPE_OUTPUT_SHAFT_SPEED"
+        
+    - pid: "ESCAPE_ATF_TEMP_ALT"
+      name: "ATF Temperature (Alternative DID)"
+      description: "Alternative DID for ATF temperature"
+      status: "Production"
+      
+      command:
+        service: "0x22"
+        did: "0x221E10"
+        full_command: "22 1E 10"
+        ecu_address: "7E0"
+        
+      response:
+        format: "62 1E 10 [TEMP_BYTE]"
+        data_length: "1 byte"
+        
+      signal_properties:
+        signal_type: "temperature"
+        data_type: "uint8"
+        byte_index: 0
+        
+      extraction:
+        method: "single_byte"
+        formula: "temp_byte - 40"
+        python_code: |
+          temp_raw = response[3]
+          temp_celsius = temp_raw - 40
+        
+      scaling:
+        formula: "raw_value - 40"
+        unit: "°C"
+        
+      notes: "Use 0x221E1C as primary, this as fallback"
+        
+    - pid: "ESCAPE_TURBINE_SPEED"
+      name: "Transmission Turbine Speed"
+      description: "Turbine (input) shaft speed in RPM"
+      status: "Production"
+      
+      command:
+        service: "0x22"
+        did: "0x221E14"
+        full_command: "22 1E 14"
+        ecu_address: "7E0"
+        
+      response:
+        format: "62 1E 14 [HIGH_BYTE] [LOW_BYTE]"
+        data_length: "2 bytes"
+        
+      signal_properties:
+        signal_type: "speed"
+        data_type: "uint16"
+        byte_index: 0
+        
+      extraction:
+        method: "16-bit unsigned integer"
+        formula: "(high_byte << 8) | low_byte"
+        python_code: |
+          # Extract turbine speed
+          high_byte = response[3]
+          low_byte = response[4]
+          turbine_rpm = (high_byte << 8) | low_byte
+          # Result: RPM
+        
+      scaling:
+        formula: "raw_value * 1.0"
+        unit: "RPM"
+        range: "0-8000 RPM"
+        
+      interpretation:
+        idle: "~700-900 RPM (matches engine RPM)"
+        driving: "Varies with engine RPM and gear"
+        slipping: "Turbine RPM significantly different from engine RPM"
+        
+      diagnostic_use: |
+        Compare turbine speed to engine RPM to detect:
+        - Torque converter slipping
+        - Transmission clutch slipping
+        - Lockup clutch operation
+        Formula: Slip = Engine_RPM - Turbine_RPM
+        Normal slip: 50-200 RPM at idle, 0 RPM when locked
+        
+      related_parameters:
+        - "ESCAPE_OUTPUT_SHAFT_SPEED"
+        - "ENGINE_RPM"
+        
+    - pid: "ESCAPE_OUTPUT_SHAFT_SPEED"
+      name: "Transmission Output Shaft Speed"
+      description: "Output shaft speed in RPM (proportional to vehicle speed)"
+      status: "Production"
+      
+      command:
+        service: "0x22"
+        did: "0x221E16"
+        full_command: "22 1E 16"
+        ecu_address: "7E0"
+        
+      response:
+        format: "62 1E 16 [HIGH_BYTE] [LOW_BYTE]"
+        data_length: "2 bytes"
+        
+      signal_properties:
+        signal_type: "speed"
+        data_type: "uint16"
+        byte_index: 0
+        
+      extraction:
+        method: "16-bit unsigned integer"
+        formula: "(high_byte << 8) | low_byte"
+        python_code: |
+          # Extract output shaft speed
+          high_byte = response[3]
+          low_byte = response[4]
+          output_rpm = (high_byte << 8) | low_byte
+          # Result: RPM
+        
+      scaling:
+        formula: "raw_value * 1.0"
+        unit: "RPM"
+        range: "0-4000 RPM"
+        
+      interpretation:
+        stopped: "0 RPM"
+        moving: "Proportional to vehicle speed"
+        gear_ratio: "Turbine_RPM / Output_RPM = current gear ratio"
+        
+      diagnostic_use: |
+        Calculate gear ratios and detect:
+        - Current gear position
+        - Gear ratio problems
+        - Speed sensor issues
+        CD4E gear ratios:
+        - 1st: 2.47:1
+        - 2nd: 1.47:1
+        - 3rd: 1.00:1
+        - 4th: 0.69:1 (overdrive)
+        
+      related_parameters:
+        - "ESCAPE_TURBINE_SPEED"
+        - "VEHICLE_SPEED"
+
+# Security-Locked Parameters (Require 0x27 SecurityAccess)
+pcm_transmission_security_locked:
+  description: "Parameters requiring security unlock"
+  security_level: "Level 1"
+  access_method: "Service 0x27 with Ford proprietary algorithm"
+  
+  parameters:
+    - pid: "ESCAPE_EPC_DUTY"
+      name: "Electronic Pressure Control Duty Cycle"
+      description: "EPC solenoid PWM duty cycle (0-100%)"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+      notes: "Requires FORScan or security algorithm"
+      
+    - pid: "ESCAPE_SS1_STATE"
+      name: "Shift Solenoid 1 State"
+      description: "SS1 ON/OFF state (controls 1-2 and 3-4 shifts)"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+      
+    - pid: "ESCAPE_SS2_STATE"
+      name: "Shift Solenoid 2 State"
+      description: "SS2 ON/OFF state (controls 2-3 shifts)"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+      
+    - pid: "ESCAPE_SS3_STATE"
+      name: "Shift Solenoid 3 State (TCC)"
+      description: "SS3 ON/OFF state (torque converter lockup)"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+      
+    - pid: "ESCAPE_LINE_PRESSURE_CMD"
+      name: "Line Pressure Commanded"
+      description: "Commanded line pressure in PSI or kPa"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+      
+    - pid: "ESCAPE_LINE_PRESSURE_ACT"
+      name: "Line Pressure Actual"
+      description: "Actual measured line pressure"
+      status: "Security Locked"
+      typical_range: "0x2000-0x2FFF"
+
+# DID Discovery Results Template
+did_discovery_results:
+  description: "Template for documenting discovered DIDs"
+  scan_date: "YYYY-MM-DD"
+  vehicle_info:
+    make: "Ford"
+    model: "Escape"
+    year: 2008
+    engine: "2.3L"
+    transmission: "CD4E"
+  
+  discovered_dids:
+    available:
+      - did: "0x221E1C"
+        description: "ATF Temperature"
+        data_length: 1
+        status: "Confirmed working"
+        
+      - did: "0x221E10"
+        description: "ATF Temperature (alt)"
+        data_length: 1
+        status: "Confirmed working"
+        
+      - did: "0x221E14"
+        description: "Turbine Speed"
+        data_length: 2
+        status: "Confirmed working"
+        
+      - did: "0x221E16"
+        description: "Output Shaft Speed"
+        data_length: 2
+        status: "Confirmed working"
+    
+    security_locked:
+      description: "DIDs that returned NRC 0x33 (security access denied)"
+      note: "These DIDs exist but require SecurityAccess (0x27)"
+      dids: []  # To be populated from scan results
+    
+    not_supported:
+      description: "DIDs that returned NRC 0x31 (request out of range)"
+      note: "These DIDs do not exist on this vehicle"
+      dids: []  # To be populated from scan results
+
+# Future Expansion Template
+future_parameters:
+  template:
+    pid: "ESCAPE_NEW_PARAM"
+    name: "Parameter Name"
+    description: "What this parameter measures"
+    status: "Experimental/Debugging/Production"
+    
+    command:
+      service: "0x22"
+      did: "0xXXXX"
+      full_command: "22 XX XX"
+      ecu_address: "XXX"
+      
+    response:
+      format: "62 XX XX [DATA...]"
+      data_length: "N bytes"
+      
+    signal_properties:
+      signal_type: "Type (boolean, uint8, uint16, etc.)"
+      data_type: "Data type"
+      bit_position: "Start bit"
+      bit_length: "Number of bits"
+      byte_index: "Which byte in response"
+      
+    extraction:
+      method: "Extraction method"
+      formula: "Mathematical formula"
+      python_code: "Python implementation"
+      
+    scaling:
+      formula: "Scaling formula if needed"
+      unit: "Final unit"
+      
+    interpretation:
+      description: "How to interpret values"
+      
+    diagnostic_use: "When and why to use this parameter"
+
+# Anti-lock Braking System (ABS) - Address 0x760
+abs_parameters:
+  ecu_address: "760"
+  ecu_name: "Anti-lock Braking System"
+  protocol: "HS-CAN (500 kbaud)"
+  part_number: "8L84-2C219-CH"
+  notes: |
+    ABS module is on HS-CAN, accessible via standard UDS.
+    Discovered DIDs 0x0200 and 0x0202 - exact function unknown.
+  
+  parameters:
+    - pid: "ESCAPE_ABS_PARAM_1"
+      name: "ABS Parameter 1"
+      description: "Unknown ABS parameter (discovered via scanning)"
+      status: "Discovered - Needs Decoding"
+      
+      command:
+        service: "0x22"
+        did: "0x0200"
+        full_command: "22 02 00"
+        ecu_address: "760"
+        
+      response:
+        format: "62 02 00 [DATA...]"
+        data_length: "4 bytes"
+        example_data: "00 00 00 00"
+        
+      signal_properties:
+        signal_type: "unknown"
+        data_type: "uint32 or 4x uint8"
+        byte_index: 0
+        
+      extraction:
+        method: "32-bit value or individual bytes"
+        python_code: |
+          # Extract as 32-bit integer
+          data = response[3:7]  # Skip 62 02 00 header
+          value_32 = int.from_bytes(data, byteorder='big')
+          
+          # Or as individual bytes
+          byte1, byte2, byte3, byte4 = data
+        
+      interpretation:
+        notes: |
+          Returns 00000000 when vehicle stationary.
+          May contain:
+          - Wheel speed data
+          - ABS system status flags
+          - Brake pressure values
+          - Sensor readings
+          Test while driving to see values change.
+        
+      diagnostic_use: |
+        Monitor this parameter while:
+        - Driving at various speeds
+        - Braking (normal and ABS activation)
+        - Turning (individual wheel speeds)
+        Compare with known wheel speed or brake pressure ranges.
+        
+    - pid: "ESCAPE_ABS_PARAM_2"
+      name: "ABS Parameter 2"
+      description: "Unknown ABS parameter (discovered via scanning)"
+      status: "Discovered - Needs Decoding"
+      
+      command:
+        service: "0x22"
+        did: "0x0202"
+        full_command: "22 02 02"
+        ecu_address: "760"
+        
+      response:
+        format: "62 02 02 [DATA...]"
+        data_length: "4 bytes"
+        example_data: "00 00 00 00"
+        
+      signal_properties:
+        signal_type: "unknown"
+        data_type: "uint32 or 4x uint8"
+        byte_index: 0
+        
+      extraction:
+        method: "32-bit value or individual bytes"
+        python_code: |
+          # Extract as 32-bit integer
+          data = response[3:7]  # Skip 62 02 02 header
+          value_32 = int.from_bytes(data, byteorder='big')
+          
+          # Or as individual bytes
+          byte1, byte2, byte3, byte4 = data
+        
+      interpretation:
+        notes: |
+          Returns 00000000 when vehicle stationary.
+          Likely different from 0x0200 - may be:
+          - Different wheel pair speeds
+          - Brake pressure (front/rear)
+          - ABS valve states
+          - System diagnostic counters
+        
+      diagnostic_use: |
+        Compare with 0x0200 to identify differences.
+        Monitor during ABS activation to see which changes.
+        May reveal individual wheel speeds or brake pressures.
+
+# Typical ABS DID Ranges (For Future Scanning)
+abs_typical_ranges:
+  description: "Common DID ranges for Ford ABS modules"
+  ranges:
+    - range: "0x0000-0x000F"
+      description: "Basic module information"
+      likely_contents: "VIN, part numbers"
+      
+    - range: "0x0080-0x008F"
+      description: "Calibration IDs"
+      likely_contents: "Software versions, calibration data"
+      
+    - range: "0x0200-0x020F"
+      description: "ABS status (confirmed working range)"
+      likely_contents: "System status, discovered DIDs here"
+      
+    - range: "0x0210-0x021F"
+      description: "Wheel speed sensors"
+      likely_contents: "FL, FR, RL, RR wheel speeds"
+      
+    - range: "0x0220-0x022F"
+      description: "Brake pressure"
+      likely_contents: "Master cylinder, individual wheel pressures"
+      
+    - range: "0x0230-0x023F"
+      description: "ABS control"
+      likely_contents: "Valve states, pump status"
+      
+    - range: "0xF000-0xF0FF"
+      description: "Diagnostic data"
+      likely_contents: "Fault counters, activation history"
+      
+    - range: "0xF100-0xF1FF"
+      description: "Module identification"
+      likely_contents: "Part numbers, manufacturing data"
+
+# Version History
+version_history:
+  - version: "1.1"
+    date: "2026-02-21"
+    changes: "Added ABS module parameters (0x0200, 0x0202)"
+    author: "AI Diagnostic Agent Development"
+    source: "Direct vehicle scanning - Ford Escape 2008"
+    
+  - version: "1.0"
+    date: "2026-02-15"
+    changes: "Initial UDS command reference with TPMS warning example"
+    author: "AI Diagnostic Agent Development"
+    source: "OBDB Community detailed specifications"

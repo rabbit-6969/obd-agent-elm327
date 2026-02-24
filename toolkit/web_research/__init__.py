@@ -1,6 +1,1 @@
-"""
-Web Research Toolkit
-
-Scripts for AI-assisted web search and information extraction.
-Supports finding diagnostic procedures, command sequences, and technical data.
-"""
+# Web research toolkit for AI Vehicle Diagnostic Agent

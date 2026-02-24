@@ -1,0 +1,143 @@
+# OBDB Batch Import Template
+# Fill in this template with OBDB signal details, then convert to full format
+# 
+# Usage:
+#   1. Copy signal details from OBDB
+#   2. Fill in the fields below
+#   3. Run: python scripts/convert_batch_template.py obdb_batch_template.yaml
+
+signals:
+  # Example entry - copy and modify for each signal
+  - pid: ESCAPE_TPMS_WARN
+    name: Tire pressure warning
+    status: Debugging
+    ecu: "720"
+    command: "2261A5"
+    bit_start: 2
+    bit_length: 1
+    signal_type: boolean
+    unit: "on/off"
+    scaling: ""
+    suggested_metric: ""
+    
+  # Add more signals below (copy the template above)
+  
+  - pid: ESCAPE_RPM
+    name: Engine speed
+    status: Production
+    ecu: "7E0"
+    command: "220C"
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "rpm"
+    scaling: "0.25"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_ECT
+    name: Coolant temperature
+    status: Production
+    ecu: "7E0"
+    command: "2205"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "celsius"
+    scaling: "-40"
+    suggested_metric: "engineCoolantTemperature"
+    
+  - pid: ESCAPE_VSS
+    name: Vehicle speed
+    status: Production
+    ecu: "7E0"
+    command: "220D"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "km/h"
+    scaling: "1"
+    suggested_metric: "speed"
+    
+  - pid: ESCAPE_MAP
+    name: Manifold pressure
+    status: Production
+    ecu: "7E0"
+    command: "220B"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "kPa"
+    scaling: "1"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_IAT_ALT2
+    name: Intake air temperature
+    status: Production
+    ecu: "7E0"
+    command: "220F"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "celsius"
+    scaling: "-40"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_STFT
+    name: Short term fuel trim
+    status: Production
+    ecu: "7E0"
+    command: "2206"
+    bit_start: 0
+    bit_length: 8
+    signal_type: int8
+    unit: "percent"
+    scaling: "(x-128)*100/128"
+    suggested_metric: "shortTermFuelTrim"
+    
+  - pid: ESCAPE_LTFT
+    name: Long term fuel trim
+    status: Production
+    ecu: "7E0"
+    command: "2207"
+    bit_start: 0
+    bit_length: 8
+    signal_type: int8
+    unit: "percent"
+    scaling: "(x-128)*100/128"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_TP_FL
+    name: Front left tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B001"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "frontLeftTirePressure"
+    
+  - pid: ESCAPE_TP_FR
+    name: Front right tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B002"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "frontRightTirePressure"
+
+# Notes:
+# - pid: Must start with ESCAPE_
+# - status: Production, Debugging, or Experimental
+# - ecu: Hex address without 0x prefix (e.g., "720", "7E0")
+# - command: Full UDS command without spaces (e.g., "2261A5")
+# - bit_start: Starting bit position (0-7 for single byte)
+# - bit_length: Number of bits (1 for boolean, 8 for byte, 16 for word)
+# - signal_type: boolean, uint8, uint16, int8, int16, float, etc.
+# - unit: Physical unit (psi, celsius, rpm, km/h, percent, etc.)
+# - scaling: Formula to convert raw value (e.g., "-40", "0.25", "(x-128)*100/128")
+# - suggested_metric: Standard metric name for API compatibility (optional)

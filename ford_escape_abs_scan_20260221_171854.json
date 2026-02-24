@@ -1,0 +1,33 @@
+{
+  "vehicle": {
+    "make": "Ford",
+    "model": "Escape",
+    "year": 2008
+  },
+  "module": {
+    "name": "ABS",
+    "description": "Anti-lock Braking System",
+    "part_number": "8L84-2C219-CH",
+    "bus": "HS-CAN",
+    "request_address": "0x760",
+    "response_address": "0x768"
+  },
+  "scan_info": {
+    "timestamp": "2026-02-21T17:18:54.924397",
+    "adapter": "ELM327 v1.5"
+  },
+  "discovered_dids": {
+    "0x0200": {
+      "data": "00000000>",
+      "length": 4,
+      "status": "available",
+      "category": "ABS Status (known range)"
+    },
+    "0x0202": {
+      "data": "00000000>",
+      "length": 4,
+      "status": "available",
+      "category": "ABS Status (known range)"
+    }
+  }
+}

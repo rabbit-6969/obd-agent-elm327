@@ -1,0 +1,309 @@
+# OBDB Batch Update - February 15, 2026
+# Complete parameter list from OBDB organized by ECU address
+# Total: 113 parameters across 6 ECU addresses
+#
+# Usage:
+#   python scripts/convert_batch_template.py scripts/obdb_batch_update_feb15.yaml --output knowledge_base/obdb_update_feb15.yaml
+
+metadata:
+  source: "OBDB Community"
+  url: "https://obdb.community/#/vehicles/Ford/Escape"
+  date_extracted: "2026-02-15"
+  total_parameters: 113
+  status_breakdown:
+    production: 111
+    debugging: 2
+  
+signals:
+  # ECU 0x720 - Instrument Panel Cluster (IPC) - 2 parameters
+  
+  - pid: ESCAPE_TPMS_WARN
+    name: Tire pressure warning
+    status: Debugging
+    ecu: "720"
+    command: "2261A5"
+    bit_start: 2
+    bit_length: 1
+    signal_type: boolean
+    unit: "on/off"
+    scaling: ""
+    suggested_metric: ""
+    notes: "TPMS warning indicator status"
+    
+  - pid: ESCAPE_FLI_ALT
+    name: Fuel tank level
+    status: Production
+    ecu: "720"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "percent"
+    scaling: ""
+    suggested_metric: "fuelTankLevel"
+    notes: "Alternate fuel level reading from IPC"
+  
+  # ECU 0x726 - Body Control Module (BCM) - 10 parameters
+  
+  - pid: ESCAPE_TP_FL
+    name: Front left tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B001"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "frontLeftTirePressure"
+    
+  - pid: ESCAPE_TP_FR
+    name: Front right tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B002"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "frontRightTirePressure"
+    
+  - pid: ESCAPE_TP_RRO
+    name: Rear right outer tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B003"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "rearRightTirePressure"
+    
+  - pid: ESCAPE_TP_RLO
+    name: Rear left outer tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B004"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "rearLeftTirePressure"
+    
+  - pid: ESCAPE_TP_RRI
+    name: Rear right inner tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B005"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "rearRightTirePressure"
+    
+  - pid: ESCAPE_TP_RLI
+    name: Rear left inner tire pressure
+    status: Production
+    ecu: "726"
+    command: "22B006"
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "psi"
+    scaling: "0.363"
+    suggested_metric: "rearLeftTirePressure"
+    
+  - pid: ESCAPE_BATT_AGE
+    name: Battery age
+    status: Production
+    ecu: "726"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "months"
+    scaling: ""
+    suggested_metric: ""
+    
+  - pid: ESCAPE_ODO_726
+    name: Odometer
+    status: Production
+    ecu: "726"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 32
+    signal_type: uint32
+    unit: "km"
+    scaling: "0.1"
+    suggested_metric: "odometer"
+    
+  - pid: ESCAPE_BATT_SOC
+    name: Battery charge
+    status: Production
+    ecu: "726"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "percent"
+    scaling: ""
+    suggested_metric: ""
+    
+  - pid: ESCAPE_BATT_TEMP
+    name: Battery temperature
+    status: Production
+    ecu: "726"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 8
+    signal_type: int8
+    unit: "celsius"
+    scaling: "-40"
+    suggested_metric: ""
+  
+  # ECU 0x760 - Anti-Lock Brake System (ABS) - 9 parameters
+  
+  - pid: ESCAPE_PARK_BRK
+    name: Parking brake
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 1
+    signal_type: boolean
+    unit: "on/off"
+    scaling: ""
+    suggested_metric: ""
+    
+  - pid: ESCAPE_LAT_G
+    name: Lateral acceleration
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: int16
+    unit: "g"
+    scaling: "0.01"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_FR_VSS
+    name: Front right wheel speed
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "km/h"
+    scaling: "0.01"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_FL_VSS
+    name: Front left wheel speed
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "km/h"
+    scaling: "0.01"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_RR_VSS
+    name: Rear right wheel speed
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "km/h"
+    scaling: "0.01"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_RL_VSS
+    name: Rear left wheel speed
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "km/h"
+    scaling: "0.01"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_LAT_ANGLE
+    name: Lateral angle
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: int16
+    unit: "degrees"
+    scaling: "0.1"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_BRK_FL_P
+    name: Brake hydraulic pressure
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: uint16
+    unit: "bar"
+    scaling: "0.1"
+    suggested_metric: ""
+    
+  - pid: ESCAPE_STEER_ANGLE
+    name: Steering wheel angle
+    status: Production
+    ecu: "760"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 16
+    signal_type: int16
+    unit: "degrees"
+    scaling: "0.1"
+    suggested_metric: ""
+  
+  # ECU 0x764 - Cruise Control Module - 1 parameter
+  
+  - pid: ESCAPE_CC_TGT_VSS
+    name: Target speed
+    status: Production
+    ecu: "764"
+    command: "226XXX"  # Command needs verification
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "km/h"
+    scaling: ""
+    suggested_metric: ""
+  
+  # ECU 0x7DF - OBD-II Broadcast (responds from PCM 0x7E8) - 1 parameter
+  
+  - pid: ESCAPE_TOT
+    name: Transmission oil temperature
+    status: Production
+    ecu: "7DF"
+    command: "2205"  # Standard OBD-II PID
+    bit_start: 0
+    bit_length: 8
+    signal_type: uint8
+    unit: "celsius"
+    scaling: "-40"
+    suggested_metric: "transmissionFluidTemperature"
+    notes: "Broadcast request, PCM responds at 0x7E8"
+
+# Note: ECU 0x7E0 (PCM) has 90 parameters - these are already well-documented
+# in the existing knowledge base. Only adding if specific commands are missing.
+

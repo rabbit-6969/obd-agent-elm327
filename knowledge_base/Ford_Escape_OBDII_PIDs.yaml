@@ -1,0 +1,1524 @@
+# Ford Escape - OBD-II Parameter IDs (PIDs)
+# Comprehensive list of supported diagnostic parameters
+# Source: OBDB Community / Sidecar (https://sidecar.clutch.engineering/cars/ford/escape)
+# Content rephrased for compliance with licensing restrictions
+
+vehicle_compatibility:
+  make: Ford
+  model: Escape
+  year_ranges:
+    - [2001, 2004]  # First Generation
+    - [2005, 2007]  # Second Generation Early
+    - [2008, 2012]  # Second Generation Late
+    - [2013, 2019]  # Third Generation
+    - [2020, 2024]  # Fourth Generation
+  notes: |
+    Parameter availability varies by model year and engine configuration.
+    Checkmarks in original data indicate year-specific support.
+    This reference covers parameters across all generations.
+
+# Engine Performance Parameters
+engine_performance:
+  - pid: "ESCAPE_RPM"
+    name: "Engine Speed"
+    unit: "rpm"
+    description: "Current engine rotational speed"
+    availability: "All years"
+    typical_range: "600-6500 rpm"
+    diagnostic_use: "Monitor engine operation, detect misfire, verify idle speed"
+    
+  - pid: "ESCAPE_ENG_LOAD_PCT"
+    name: "Engine Load"
+    unit: "percent"
+    description: "Calculated engine load value"
+    availability: "All years"
+    typical_range: "0-100%"
+    diagnostic_use: "Assess engine performance under various conditions"
+    
+  - pid: "ESCAPE_ENG_LOAD_ACT"
+    name: "Engine Load (Actual)"
+    unit: "percent"
+    description: "Actual measured engine load"
+    availability: "All years"
+    typical_range: "0-100%"
+    diagnostic_use: "More accurate than calculated load for diagnostics"
+    
+  - pid: "ESCAPE_PCM_ACT_ENG_PCT_TRQ"
+    name: "Actual Engine Percent Torque"
+    unit: "percent"
+    description: "Current engine torque output as percentage of maximum"
+    availability: "2013+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor powertrain performance and efficiency"
+    
+  - pid: "ESCAPE_PCM_ENG_REFERENCE_TRQ"
+    name: "Engine Reference Torque"
+    unit: "newtonMeters"
+    description: "Maximum available engine torque at current conditions"
+    availability: "2013+"
+    typical_range: "Varies by engine"
+    diagnostic_use: "Calculate actual torque output"
+    
+  - pid: "ESCAPE_ERT"
+    name: "Engine Run Time"
+    unit: "seconds"
+    description: "Time since engine start"
+    availability: "Most years"
+    typical_range: "0-999999 seconds"
+    diagnostic_use: "Track warm-up time, correlate with other parameters"
+
+# Fuel System Parameters
+fuel_system:
+  - pid: "ESCAPE_STFT"
+    name: "Short Term Fuel Trim"
+    unit: "percent"
+    description: "Immediate fuel mixture adjustment"
+    availability: "All years"
+    typical_range: "-10% to +10% (normal)"
+    diagnostic_use: "Detect air leaks, sensor issues, fuel delivery problems"
+    interpretation: |
+      Positive values: ECU adding fuel (running lean)
+      Negative values: ECU removing fuel (running rich)
+      Values beyond ±10% indicate problems
+    
+  - pid: "ESCAPE_LTFT"
+    name: "Long Term Fuel Trim"
+    unit: "percent"
+    description: "Learned fuel mixture adjustment over time"
+    availability: "All years"
+    typical_range: "-10% to +10% (normal)"
+    diagnostic_use: "Identify chronic fuel system issues"
+    interpretation: |
+      Positive values: Compensating for lean condition
+      Negative values: Compensating for rich condition
+      Values beyond ±15% indicate significant problems
+    
+  - pid: "ESCAPE_LPFP_ACT"
+    name: "Low Pressure Fuel Pump (Actual)"
+    unit: "psi"
+    description: "Current low-pressure fuel system pressure"
+    availability: "2013+"
+    typical_range: "40-60 psi"
+    diagnostic_use: "Verify fuel pump operation, detect fuel delivery issues"
+    
+  - pid: "ESCAPE_LPFP_DES"
+    name: "Low Pressure Fuel Pump (Desired)"
+    unit: "psi"
+    description: "Target low-pressure fuel system pressure"
+    availability: "2013+"
+    typical_range: "40-60 psi"
+    diagnostic_use: "Compare with actual to detect fuel pressure regulation issues"
+    
+  - pid: "ESCAPE_LPFP_DUTY"
+    name: "Low Pressure Fuel Pump Duty Cycle"
+    unit: "percent"
+    description: "Fuel pump control signal duty cycle"
+    availability: "2005+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor fuel pump operation and load"
+    
+  - pid: "ESCAPE_LPFP_SENS_V"
+    name: "Low Pressure Fuel Sensor Voltage"
+    unit: "volts"
+    description: "Fuel pressure sensor voltage output"
+    availability: "2013+"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify sensor operation"
+    
+  - pid: "ESCAPE_HPFP_DES"
+    name: "High Pressure Fuel Pump (Desired)"
+    unit: "psi"
+    description: "Target high-pressure fuel rail pressure (direct injection)"
+    availability: "2013+ (EcoBoost engines)"
+    typical_range: "500-2500 psi"
+    diagnostic_use: "Monitor direct injection fuel system"
+    
+  - pid: "ESCAPE_HPFP_V"
+    name: "High Pressure Fuel Rail Sensor Voltage"
+    unit: "volts"
+    description: "High-pressure fuel rail sensor voltage"
+    availability: "2013+ (EcoBoost engines)"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify high-pressure fuel system sensor"
+
+# Air Intake System
+air_intake:
+  - pid: "ESCAPE_MAP"
+    name: "Manifold Absolute Pressure"
+    unit: "psi"
+    description: "Intake manifold pressure"
+    availability: "All years"
+    typical_range: "5-15 psi (naturally aspirated), 15-25 psi (turbocharged)"
+    diagnostic_use: "Detect vacuum leaks, boost issues, MAP sensor problems"
+    
+  - pid: "ESCAPE_MAP_V"
+    name: "MAP Sensor Voltage"
+    unit: "volts"
+    description: "Manifold pressure sensor voltage output"
+    availability: "2005+"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify MAP sensor operation"
+    
+  - pid: "ESCAPE_IAT_ALT2"
+    name: "Intake Air Temperature"
+    unit: "celsius"
+    description: "Temperature of air entering engine"
+    availability: "All years"
+    typical_range: "-40 to 120°C"
+    diagnostic_use: "Verify IAT sensor, detect intake heating issues"
+    
+  - pid: "ESCAPE_IAT_SENS_V"
+    name: "IAT Sensor Voltage"
+    unit: "volts"
+    description: "Intake air temperature sensor voltage"
+    availability: "All years"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify sensor operation"
+    
+  - pid: "ESCAPE_IAT_FAULT"
+    name: "Intake Temperature Fault"
+    unit: "scalar"
+    description: "IAT sensor fault indicator"
+    availability: "All years"
+    diagnostic_use: "Quick check for IAT sensor issues"
+    
+  - pid: "ESCAPE_MCT"
+    name: "Manifold Charge Temperature"
+    unit: "celsius"
+    description: "Temperature of air in intake manifold"
+    availability: "2005+"
+    typical_range: "-40 to 120°C"
+    diagnostic_use: "Monitor intake air heating, intercooler efficiency"
+    
+  - pid: "ESCAPE_CAT"
+    name: "Charge Air Temperature"
+    unit: "celsius"
+    description: "Temperature after turbocharger/intercooler"
+    availability: "2013+ (turbocharged)"
+    typical_range: "20-80°C"
+    diagnostic_use: "Monitor intercooler efficiency, detect boost issues"
+    
+  - pid: "ESCAPE_CAT_SENS_V"
+    name: "Charge Air Temperature Sensor Voltage"
+    unit: "volts"
+    description: "Charge air temperature sensor voltage"
+    availability: "2013+ (turbocharged)"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify sensor operation"
+    
+  - pid: "ESCAPE_BARO"
+    name: "Barometric Pressure"
+    unit: "psi"
+    description: "Atmospheric pressure"
+    availability: "Most years"
+    typical_range: "12-15 psi (sea level)"
+    diagnostic_use: "Altitude compensation verification"
+    
+  - pid: "ESCAPE_BARO_V"
+    name: "Barometric Pressure Sensor Voltage"
+    unit: "volts"
+    description: "Barometric pressure sensor voltage"
+    availability: "2005+"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify sensor operation"
+
+# Throttle Control
+throttle_control:
+  - pid: "ESCAPE_ACC_POS"
+    name: "Accelerator Position"
+    unit: "percent"
+    description: "Accelerator pedal position"
+    availability: "Most years"
+    typical_range: "0-100%"
+    diagnostic_use: "Verify accelerator pedal sensor, diagnose throttle response"
+    
+  - pid: "ESCAPE_ETC_ANG_ACT"
+    name: "Throttle Angle (Actual)"
+    unit: "degrees"
+    description: "Current throttle plate position"
+    availability: "All years"
+    typical_range: "0-90 degrees"
+    diagnostic_use: "Monitor electronic throttle control operation"
+    
+  - pid: "ESCAPE_ETC_ANG_DES"
+    name: "Throttle Angle (Desired)"
+    unit: "degrees"
+    description: "Target throttle plate position"
+    availability: "All years"
+    typical_range: "0-90 degrees"
+    diagnostic_use: "Compare with actual to detect throttle control issues"
+    
+  - pid: "ESCAPE_ETC_TRIM_LRN"
+    name: "Throttle Control Trim Angle (Learned)"
+    unit: "degrees"
+    description: "Learned throttle position adjustment"
+    availability: "2005+"
+    typical_range: "-5 to +5 degrees"
+    diagnostic_use: "Monitor throttle body adaptation"
+    
+  - pid: "ESCAPE_TIP_ABS"
+    name: "Throttle Inlet Pressure"
+    unit: "psi"
+    description: "Pressure before throttle body"
+    availability: "2005+"
+    typical_range: "Varies with boost"
+    diagnostic_use: "Monitor turbocharger boost pressure"
+    
+  - pid: "ESCAPE_TIP_V"
+    name: "Throttle Inlet Pressure Sensor Voltage"
+    unit: "volts"
+    description: "TIP sensor voltage output"
+    availability: "2005+"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify sensor operation"
+    
+  - pid: "ESCAPE_TIP_DES_ABS"
+    name: "Throttle Inlet Pressure (Desired)"
+    unit: "psi"
+    description: "Target boost pressure"
+    availability: "2013+ (turbocharged)"
+    typical_range: "Varies by engine"
+    diagnostic_use: "Compare with actual to detect boost control issues"
+
+# Turbocharger System (EcoBoost)
+turbocharger:
+  - pid: "ESCAPE_WGDC"
+    name: "Wastegate Duty Cycle"
+    unit: "percent"
+    description: "Wastegate control solenoid duty cycle"
+    availability: "2013+ (turbocharged)"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor boost control, detect wastegate issues"
+    
+  - pid: "ESCAPE_BPV_OPEN"
+    name: "Bypass Valve"
+    unit: "scalar"
+    description: "Turbo bypass valve status"
+    availability: "2013+ (turbocharged)"
+    diagnostic_use: "Monitor bypass valve operation during deceleration"
+
+# Variable Valve Timing
+variable_valve_timing:
+  - pid: "ESCAPE_VCT_INT_ACT"
+    name: "Intake Camshaft Position (Actual)"
+    unit: "degrees"
+    description: "Current intake cam timing advance"
+    availability: "2005+"
+    typical_range: "0-50 degrees"
+    diagnostic_use: "Monitor VCT operation"
+    
+  - pid: "ESCAPE_VCT_INT_DES"
+    name: "Intake Camshaft Position (Desired)"
+    unit: "degrees"
+    description: "Target intake cam timing"
+    availability: "2005+"
+    typical_range: "0-50 degrees"
+    diagnostic_use: "Compare with actual to detect VCT issues"
+    
+  - pid: "ESCAPE_VCT_INT_ERR"
+    name: "Intake Camshaft Position Error"
+    unit: "degrees"
+    description: "Difference between desired and actual intake cam position"
+    availability: "2005+"
+    typical_range: "-5 to +5 degrees (normal)"
+    diagnostic_use: "Detect VCT solenoid or phaser problems"
+    
+  - pid: "ESCAPE_VCT_INT_DUTY"
+    name: "Intake Camshaft Solenoid Duty Cycle"
+    unit: "percent"
+    description: "VCT solenoid control signal"
+    availability: "2005+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor VCT solenoid operation"
+    
+  - pid: "ESCAPE_VCT_EXH_ACT"
+    name: "Exhaust Camshaft Position (Actual)"
+    unit: "degrees"
+    description: "Current exhaust cam timing advance"
+    availability: "2005+"
+    typical_range: "0-50 degrees"
+    diagnostic_use: "Monitor exhaust VCT operation"
+    
+  - pid: "ESCAPE_VCT_EXH_DES"
+    name: "Exhaust Camshaft Position (Desired)"
+    unit: "degrees"
+    description: "Target exhaust cam timing"
+    availability: "2005+"
+    typical_range: "0-50 degrees"
+    diagnostic_use: "Compare with actual to detect VCT issues"
+    
+  - pid: "ESCAPE_VCT_EXH_ERR"
+    name: "Exhaust Camshaft Position Error"
+    unit: "degrees"
+    description: "Difference between desired and actual exhaust cam position"
+    availability: "2005+"
+    typical_range: "-5 to +5 degrees (normal)"
+    diagnostic_use: "Detect exhaust VCT solenoid or phaser problems"
+    
+  - pid: "ESCAPE_VCT_EXH_DUTY"
+    name: "Exhaust Camshaft Solenoid Duty Cycle"
+    unit: "percent"
+    description: "Exhaust VCT solenoid control signal"
+    availability: "2005+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor exhaust VCT solenoid operation"
+
+# Ignition System
+ignition_system:
+  - pid: "ESCAPE_IGN_TIM_CYL1"
+    name: "Ignition Timing (Cylinder 1)"
+    unit: "degrees"
+    description: "Spark timing advance for cylinder 1"
+    availability: "All years"
+    typical_range: "5-35 degrees BTDC"
+    diagnostic_use: "Monitor ignition timing, detect knock retard"
+    
+  - pid: "ESCAPE_IGN_CORR_CYL1"
+    name: "Ignition Correction (Cylinder 1)"
+    unit: "degrees"
+    description: "Timing adjustment from base for cylinder 1"
+    availability: "All years"
+    typical_range: "-10 to +10 degrees"
+    diagnostic_use: "Detect knock, fuel quality issues"
+    
+  - pid: "ESCAPE_OAR"
+    name: "Octane Adjustment"
+    unit: "scalar"
+    description: "Octane rating adaptation value"
+    availability: "2005+"
+    diagnostic_use: "Monitor fuel quality adaptation"
+    
+  - pid: "ESCAPE_KS1_RAW"
+    name: "Knock Sensor 1"
+    unit: "scalar"
+    description: "Knock sensor 1 raw signal"
+    availability: "All years"
+    diagnostic_use: "Monitor engine knock detection"
+    
+  - pid: "ESCAPE_KS2_RAW"
+    name: "Knock Sensor 2"
+    unit: "scalar"
+    description: "Knock sensor 2 raw signal (V6 engines)"
+    availability: "2013+ (V6)"
+    diagnostic_use: "Monitor knock on bank 2"
+    
+  - pid: "ESCAPE_PCM_CYL_1_KNK_COMB_PERF_CNT"
+    name: "Knock Counter (Cylinder 1)"
+    unit: "scalar"
+    description: "Number of knock events detected on cylinder 1"
+    availability: "2013+"
+    diagnostic_use: "Track knock frequency per cylinder"
+    
+  - pid: "ESCAPE_PCM_CYL_2_KNK_COMB_PERF_CNT"
+    name: "Knock Counter (Cylinder 2)"
+    unit: "scalar"
+    description: "Number of knock events detected on cylinder 2"
+    availability: "2013+"
+    diagnostic_use: "Track knock frequency per cylinder"
+    
+  - pid: "ESCAPE_PCM_CYL_3_KNK_COMB_PERF_CNT"
+    name: "Knock Counter (Cylinder 3)"
+    unit: "scalar"
+    description: "Number of knock events detected on cylinder 3"
+    availability: "2013+"
+    diagnostic_use: "Track knock frequency per cylinder"
+    
+  - pid: "ESCAPE_PCM_CYL_4_KNK_COMB_PERF_CNT"
+    name: "Knock Counter (Cylinder 4)"
+    unit: "scalar"
+    description: "Number of knock events detected on cylinder 4"
+    availability: "2013+"
+    diagnostic_use: "Track knock frequency per cylinder"
+
+# Fuel Injection
+fuel_injection:
+  - pid: "ESCAPE_INJ_MODE"
+    name: "Injection Mode"
+    unit: "scalar"
+    description: "Current fuel injection strategy"
+    availability: "2013+ (direct injection)"
+    diagnostic_use: "Monitor injection mode changes (port/direct/both)"
+
+# Temperature Sensors
+temperature_sensors:
+  - pid: "ESCAPE_ECT"
+    name: "Engine Coolant Temperature"
+    unit: "celsius"
+    description: "Coolant temperature"
+    availability: "All years"
+    typical_range: "80-105°C (normal operating)"
+    diagnostic_use: "Monitor engine warm-up, detect overheating, thermostat issues"
+    
+  - pid: "ESCAPE_PCM_CYL_HEAD_T_CORR"
+    name: "Cylinder Head Temperature (Corrected)"
+    unit: "celsius"
+    description: "Calculated cylinder head temperature"
+    availability: "2005+"
+    typical_range: "Similar to coolant temp"
+    diagnostic_use: "Monitor head temperature for overheating"
+    
+  - pid: "ESCAPE_PCM_CYL_HEAD_T_SENS_2_RAW"
+    name: "Cylinder Head Temperature Sensor 2"
+    unit: "celsius"
+    description: "Secondary head temperature sensor"
+    availability: "2013+"
+    diagnostic_use: "Verify head temperature accuracy"
+    
+  - pid: "ESCAPE_CAT_TEMP"
+    name: "Catalyst Temperature"
+    unit: "celsius"
+    description: "Catalytic converter temperature"
+    availability: "2005+"
+    typical_range: "300-900°C (under load)"
+    diagnostic_use: "Monitor catalyst efficiency, detect overheating"
+
+# Oxygen Sensors
+oxygen_sensors:
+  - pid: "ESCAPE_RO2_V"
+    name: "Rear O2 Sensor Voltage"
+    unit: "volts"
+    description: "Post-catalyst oxygen sensor voltage"
+    availability: "2005+"
+    typical_range: "0.1-0.9V"
+    diagnostic_use: "Monitor catalyst efficiency"
+    
+  - pid: "ESCAPE_CL"
+    name: "Lambda (Commanded)"
+    unit: "scalar"
+    description: "Target air-fuel ratio"
+    availability: "Some years"
+    typical_range: "1.0 (stoichiometric)"
+    diagnostic_use: "Monitor fuel control strategy"
+    
+  - pid: "ESCAPE_CL_LC"
+    name: "Lambda Correction"
+    unit: "scalar"
+    description: "Air-fuel ratio correction factor"
+    availability: "2005+"
+    diagnostic_use: "Monitor closed-loop fuel control"
+
+# Evaporative Emissions
+evaporative_emissions:
+  - pid: "ESCAPE_EVAP_PURGE_CMD"
+    name: "Evaporative Purge"
+    unit: "percent"
+    description: "EVAP purge valve duty cycle"
+    availability: "All years"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor EVAP system operation"
+    
+  - pid: "ESCAPE_EVAP_V"
+    name: "Evaporative Pressure Sensor Voltage"
+    unit: "volts"
+    description: "EVAP system pressure sensor voltage"
+    availability: "2005+"
+    typical_range: "0.5-4.5V"
+    diagnostic_use: "Verify EVAP pressure sensor, detect leaks"
+
+# Misfire Detection
+misfire_detection:
+  - pid: "ESCAPE_PCM_MISF_ACCEL_CYL1_NORM"
+    name: "Misfire Acceleration (Cylinder 1)"
+    unit: "scalar"
+    description: "Normalized crankshaft acceleration for cylinder 1"
+    availability: "All years"
+    diagnostic_use: "Detect misfires on cylinder 1"
+    
+  - pid: "ESCAPE_PCM_MISF_ACCEL_CYL2_NORM"
+    name: "Misfire Acceleration (Cylinder 2)"
+    unit: "scalar"
+    description: "Normalized crankshaft acceleration for cylinder 2"
+    availability: "All years"
+    diagnostic_use: "Detect misfires on cylinder 2"
+    
+  - pid: "ESCAPE_PCM_MISF_ACCEL_CYL3_NORM"
+    name: "Misfire Acceleration (Cylinder 3)"
+    unit: "scalar"
+    description: "Normalized crankshaft acceleration for cylinder 3"
+    availability: "All years"
+    diagnostic_use: "Detect misfires on cylinder 3"
+    
+  - pid: "ESCAPE_PCM_MISF_ACCEL_CYL4_NORM"
+    name: "Misfire Acceleration (Cylinder 4)"
+    unit: "scalar"
+    description: "Normalized crankshaft acceleration for cylinder 4"
+    availability: "All years"
+    diagnostic_use: "Detect misfires on cylinder 4"
+    
+  - pid: "ESCAPE_PCM_MISF_ACCEL_CYL6_NORM"
+    name: "Misfire Acceleration (Cylinder 6)"
+    unit: "scalar"
+    description: "Normalized crankshaft acceleration for cylinder 6 (V6)"
+    availability: "V6 engines"
+    diagnostic_use: "Detect misfires on cylinder 6"
+    
+  - pid: "ESCAPE_PCM_MISF_EVENTS_LATEST_CYC"
+    name: "Misfire Events (Latest Cycle)"
+    unit: "scalar"
+    description: "Number of misfires in most recent engine cycle"
+    availability: "All years"
+    diagnostic_use: "Quick misfire detection"
+
+# Torque Management
+torque_management:
+  - pid: "ESCAPE_TRQ_CTRL_REQ"
+    name: "Torque Request"
+    unit: "percent"
+    description: "Requested engine torque from transmission/traction control"
+    availability: "All years"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor torque reduction requests"
+
+# Maintenance Tracking
+maintenance_tracking:
+  - pid: "ESCAPE_DIST_DTC_CLR"
+    name: "Distance Since DTC Clear"
+    unit: "kilometers"
+    description: "Distance traveled since diagnostic codes were cleared"
+    availability: "All years"
+    diagnostic_use: "Track drive cycle completion"
+    
+  - pid: "ESCAPE_MIL_DIST"
+    name: "Distance With MIL"
+    unit: "kilometers"
+    description: "Distance traveled with check engine light on"
+    availability: "All years"
+    diagnostic_use: "Track how long problem has existed"
+    
+  - pid: "ESCAPE_WARMUP_CLR"
+    name: "Warm-ups Since DTC Clear"
+    unit: "scalar"
+    description: "Number of engine warm-up cycles since codes cleared"
+    availability: "All years"
+    diagnostic_use: "Track drive cycle completion for readiness monitors"
+    
+  - pid: "ESCAPE_PCM_ENG_OIL_LIFE_REM"
+    name: "Oil Life Remaining"
+    unit: "percent"
+    description: "Calculated remaining oil life"
+    availability: "2013+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor oil change interval"
+    
+  - pid: "ESCAPE_PCM_ENG_EOP_RAW"
+    name: "Engine Oil Pressure"
+    unit: "kilopascal"
+    description: "Engine oil pressure"
+    availability: "2013+"
+    typical_range: "150-400 kPa (at operating temp)"
+    diagnostic_use: "Monitor oil pressure, detect pump or bearing issues"
+
+# Cooling System
+cooling_system:
+  - pid: "ESCAPE_GRILL_SHUT_DC"
+    name: "Grill Shutter Duty Cycle"
+    unit: "percent"
+    description: "Active grill shutter position control"
+    availability: "2013+"
+    typical_range: "0-100%"
+    diagnostic_use: "Monitor active aerodynamics operation"
+
+# Diagnostic Notes
+diagnostic_notes:
+  general: |
+    Ford Escape uses manufacturer-specific PIDs beyond standard OBD-II.
+    Access requires compatible scan tool with Ford enhanced protocols.
+    Parameter availability varies significantly by model year and engine.
+    
+  protocol_info: |
+    2008-2012: ISO 15765-4 CAN (11-bit, 500 kbaud for powertrain)
+    2013+: ISO 15765-4 CAN (11-bit, 500 kbaud for powertrain)
+    Some parameters require extended diagnostic session (Mode 0x10)
+    
+  tool_requirements: |
+    Basic OBD-II scanner: Standard PIDs only (RPM, coolant temp, etc.)
+    Enhanced Ford scanner: All manufacturer-specific PIDs
+    FORScan: Full access to all modules and parameters
+    
+  common_diagnostic_patterns:
+    misfire_diagnosis:
+      - "Monitor ESCAPE_PCM_MISF_ACCEL_CYLx_NORM for all cylinders"
+      - "Check ESCAPE_IGN_TIM_CYL1 and ESCAPE_IGN_CORR_CYL1"
+      - "Verify ESCAPE_STFT and ESCAPE_LTFT are within range"
+      - "Check ESCAPE_KS1_RAW for knock activity"
+      
+    boost_issues:
+      - "Compare ESCAPE_TIP_ABS with ESCAPE_TIP_DES_ABS"
+      - "Monitor ESCAPE_WGDC (should modulate under load)"
+      - "Check ESCAPE_CAT for excessive intake temps"
+      - "Verify ESCAPE_MAP matches expected boost levels"
+      
+    vct_problems:
+      - "Compare ESCAPE_VCT_INT_ACT with ESCAPE_VCT_INT_DES"
+      - "Check ESCAPE_VCT_INT_ERR (should be <5 degrees)"
+      - "Monitor ESCAPE_VCT_INT_DUTY (should respond to load)"
+      - "Repeat for exhaust cam (EXH parameters)"
+      
+    fuel_system_diagnosis:
+      - "Check ESCAPE_STFT and ESCAPE_LTFT together"
+      - "Monitor ESCAPE_LPFP_ACT vs ESCAPE_LPFP_DES"
+      - "Verify ESCAPE_LPFP_DUTY responds appropriately"
+      - "For DI engines, check ESCAPE_HPFP_DES"
+
+# Data Source Attribution
+data_source:
+  primary: "Sidecar by Clutch Engineering"
+  url: "https://sidecar.clutch.engineering/cars/ford/escape"
+  community: "OBDB Community"
+  date_accessed: "2026-02-15"
+  notes: "Content rephrased for compliance with licensing restrictions"
+
+
+# Additional Parameters from OBDB Extended Dataset
+# Includes ECU addresses and suggested metric mappings
+
+# Tire Pressure Monitoring System (TPMS)
+tire_pressure_monitoring:
+  ecu_address: "726"  # Body Control Module
+  parameters:
+    - pid: "ESCAPE_TP_FL"
+      name: "Front Left Tire Pressure"
+      unit: "psi"
+      description: "Front left tire pressure reading"
+      suggested_metric: "frontLeftTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor tire pressure, detect slow leaks"
+      
+    - pid: "ESCAPE_TP_FR"
+      name: "Front Right Tire Pressure"
+      unit: "psi"
+      description: "Front right tire pressure reading"
+      suggested_metric: "frontRightTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor tire pressure, detect slow leaks"
+      
+    - pid: "ESCAPE_TP_RLO"
+      name: "Rear Left Outer Tire Pressure"
+      unit: "psi"
+      description: "Rear left outer tire pressure (dual rear wheels)"
+      suggested_metric: "rearLeftTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor tire pressure on dual-wheel configurations"
+      
+    - pid: "ESCAPE_TP_RRO"
+      name: "Rear Right Outer Tire Pressure"
+      unit: "psi"
+      description: "Rear right outer tire pressure (dual rear wheels)"
+      suggested_metric: "rearRightTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor tire pressure on dual-wheel configurations"
+      
+    - pid: "ESCAPE_TP_RLI"
+      name: "Rear Left Inner Tire Pressure"
+      unit: "psi"
+      description: "Rear left inner tire pressure (dual rear wheels)"
+      suggested_metric: "rearLeftTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor inner tire on dual-wheel configurations"
+      
+    - pid: "ESCAPE_TP_RRI"
+      name: "Rear Right Inner Tire Pressure"
+      unit: "psi"
+      description: "Rear right inner tire pressure (dual rear wheels)"
+      suggested_metric: "rearRightTirePressure"
+      typical_range: "30-35 psi"
+      diagnostic_use: "Monitor inner tire on dual-wheel configurations"
+      
+    - pid: "ESCAPE_TPMS_WARN"
+      name: "Tire Pressure Warning"
+      unit: "boolean"
+      description: "TPMS warning indicator status"
+      status: "Debugging"
+      diagnostic_use: "Check if TPMS system has detected low pressure"
+
+# Transmission Parameters
+transmission_system:
+  ecu_address: "7DF"  # Generic broadcast, or 7E0 (PCM)
+  parameters:
+    - pid: "ESCAPE_TOT"
+      name: "Transmission Oil Temperature"
+      unit: "celsius"
+      description: "Transmission fluid temperature"
+      suggested_metric: "transmissionFluidTemperature"
+      typical_range: "70-95°C (normal operating)"
+      diagnostic_use: "Monitor transmission temperature, detect overheating"
+      notes: "High temps (>110°C) indicate cooling issues or heavy load"
+      
+    - pid: "ESCAPE_PCM_CMD_TRANS_GEAR_RATIO"
+      name: "Commanded Gear Ratio"
+      unit: "ratio"
+      description: "Transmission gear ratio commanded by PCM"
+      ecu_address: "7E0"
+      diagnostic_use: "Verify transmission is in correct gear"
+      
+    - pid: "ESCAPE_PCM_CMD_TRANS_MAIN_LINE_P"
+      name: "Commanded Transmission Line Pressure"
+      unit: "psi"
+      description: "Commanded transmission hydraulic line pressure"
+      ecu_address: "7E0"
+      diagnostic_use: "Monitor transmission pressure control"
+      
+    - pid: "ESCAPE_AXLE_GEAR_RATIO_MEAS"
+      name: "Measured Axle Gear Ratio"
+      unit: "ratio"
+      description: "Calculated axle gear ratio from wheel speed sensors"
+      ecu_address: "7E0"
+      diagnostic_use: "Verify differential ratio, detect slippage"
+      
+    - pid: "ESCAPE_GEAR"
+      name: "Current Gear"
+      unit: "gear"
+      description: "Currently selected transmission gear"
+      ecu_address: "7E0"
+      diagnostic_use: "Monitor gear selection and shift patterns"
+      
+    - pid: "ESCAPE_GEAR_ENG"
+      name: "Engaged Gear"
+      unit: "gear"
+      description: "Currently engaged transmission gear"
+      ecu_address: "7E0"
+      diagnostic_use: "Verify gear engagement"
+      
+    - pid: "ESCAPE_GEAR_SHFT"
+      name: "Shift Gear"
+      unit: "gear"
+      description: "Target gear for shift operation"
+      ecu_address: "7E0"
+      diagnostic_use: "Monitor shift commands and timing"
+
+# ABS / Brake System
+abs_brake_system:
+  ecu_address: "760"  # ABS Module
+  parameters:
+    - pid: "ESCAPE_FR_VSS"
+      name: "Front Right Wheel Speed"
+      unit: "mph or km/h"
+      description: "Front right wheel speed sensor reading"
+      diagnostic_use: "Detect wheel speed sensor issues, ABS operation"
+      
+    - pid: "ESCAPE_FL_VSS"
+      name: "Front Left Wheel Speed"
+      unit: "mph or km/h"
+      description: "Front left wheel speed sensor reading"
+      diagnostic_use: "Detect wheel speed sensor issues, ABS operation"
+      
+    - pid: "ESCAPE_RR_VSS"
+      name: "Rear Right Wheel Speed"
+      unit: "mph or km/h"
+      description: "Rear right wheel speed sensor reading"
+      diagnostic_use: "Detect wheel speed sensor issues, ABS operation"
+      
+    - pid: "ESCAPE_RL_VSS"
+      name: "Rear Left Wheel Speed"
+      unit: "mph or km/h"
+      description: "Rear left wheel speed sensor reading"
+      diagnostic_use: "Detect wheel speed sensor issues, ABS operation"
+      
+    - pid: "ESCAPE_LAT_G"
+      name: "Lateral Acceleration"
+      unit: "g"
+      description: "Lateral acceleration (cornering force)"
+      diagnostic_use: "Monitor vehicle dynamics, stability control"
+      
+    - pid: "ESCAPE_LAT_ANGLE"
+      name: "Lateral Angle"
+      unit: "degrees"
+      description: "Vehicle lateral angle (yaw)"
+      diagnostic_use: "Monitor vehicle stability, detect skidding"
+      
+    - pid: "ESCAPE_BRK_FL_P"
+      name: "Front Left Brake Hydraulic Pressure"
+      unit: "psi"
+      description: "Brake hydraulic pressure at front left wheel"
+      diagnostic_use: "Monitor ABS operation, detect brake issues"
+      
+    - pid: "ESCAPE_STEER_ANGLE"
+      name: "Steering Wheel Angle"
+      unit: "degrees"
+      description: "Steering wheel position"
+      diagnostic_use: "Monitor steering input, stability control calibration"
+      
+    - pid: "ESCAPE_PARK_BRK"
+      name: "Parking Brake Status"
+      unit: "boolean"
+      description: "Parking brake engaged/released status"
+      diagnostic_use: "Verify parking brake operation"
+
+# Battery Management System
+battery_system:
+  ecu_address: "726"  # Body Control Module
+  parameters:
+    - pid: "ESCAPE_BATT_SOC"
+      name: "Battery State of Charge"
+      unit: "percent"
+      description: "Battery charge level"
+      typical_range: "80-100% (healthy battery)"
+      diagnostic_use: "Monitor battery health, charging system"
+      
+    - pid: "ESCAPE_BATT_TEMP"
+      name: "Battery Temperature"
+      unit: "celsius"
+      description: "Battery temperature"
+      typical_range: "10-40°C (normal)"
+      diagnostic_use: "Detect battery overheating or cold weather issues"
+      
+    - pid: "ESCAPE_BATT_AGE"
+      name: "Battery Age"
+      unit: "months or cycles"
+      description: "Calculated battery age"
+      diagnostic_use: "Track battery life, predict replacement needs"
+
+# Fuel System Extended
+fuel_system_extended:
+  ecu_address: "7E0"  # PCM
+  parameters:
+    - pid: "ESCAPE_FLI"
+      name: "Fuel Level"
+      unit: "percent or gallons"
+      description: "Fuel tank level"
+      suggested_metric: "fuelTankLevel"
+      diagnostic_use: "Monitor fuel level, verify sender operation"
+      
+    - pid: "ESCAPE_FLI_ALT"
+      name: "Fuel Tank Level (Alternate)"
+      unit: "percent or gallons"
+      description: "Alternate fuel level reading"
+      ecu_address: "720"
+      suggested_metric: "fuelTankLevel"
+      diagnostic_use: "Cross-reference fuel level readings"
+      
+    - pid: "ESCAPE_DTE"
+      name: "Distance to Empty (Calculated)"
+      unit: "miles or km"
+      description: "Calculated remaining range"
+      suggested_metric: "fuelRange"
+      diagnostic_use: "Monitor fuel economy calculations"
+      
+    - pid: "ESCAPE_DTE_DISP"
+      name: "Distance to Empty (Displayed)"
+      unit: "miles or km"
+      description: "Range displayed to driver"
+      suggested_metric: "fuelRange"
+      diagnostic_use: "Verify range calculation accuracy"
+
+# Climate Control Extended
+climate_control_extended:
+  ecu_address: "7E0"  # PCM (A/C compressor control)
+  parameters:
+    - pid: "ESCAPE_AC_P"
+      name: "A/C Compressor Pressure"
+      unit: "psi"
+      description: "Air conditioning system pressure"
+      typical_range: "25-250 psi (varies with conditions)"
+      diagnostic_use: "Monitor A/C system, detect leaks or overcharge"
+      
+    - pid: "ESCAPE_AC_P_SENS_V"
+      name: "A/C Compressor Pressure Sensor Voltage"
+      unit: "volts"
+      description: "A/C pressure sensor voltage output"
+      typical_range: "0.5-4.5V"
+      diagnostic_use: "Verify A/C pressure sensor operation"
+      
+    - pid: "ESCAPE_PCM_A_C_REFRIG_P"
+      name: "A/C Refrigerant Pressure"
+      unit: "psi"
+      description: "Refrigerant pressure reading"
+      diagnostic_use: "Monitor refrigerant charge level"
+      
+    - pid: "ESCAPE_AC_STATE"
+      name: "A/C Compressor State"
+      unit: "boolean or state"
+      description: "A/C compressor on/off status"
+      diagnostic_use: "Verify compressor clutch engagement"
+      
+    - pid: "ESCAPE_AAT_V"
+      name: "Ambient Air Temperature Sensor Voltage"
+      unit: "volts"
+      description: "Outside air temperature sensor voltage"
+      typical_range: "0.5-4.5V"
+      diagnostic_use: "Verify ambient temp sensor"
+      
+    - pid: "ESCAPE_AAT_ALT"
+      name: "Ambient Air Temperature (Alternate)"
+      unit: "celsius"
+      description: "Outside air temperature"
+      diagnostic_use: "Monitor ambient conditions"
+
+# Odometer Readings
+odometer_system:
+  parameters:
+    - pid: "ESCAPE_ODO_726"
+      name: "Odometer (Instrument Panel)"
+      unit: "miles or km"
+      description: "Odometer reading from instrument cluster"
+      ecu_address: "726"
+      suggested_metric: "odometer"
+      diagnostic_use: "Verify odometer accuracy"
+      
+    - pid: "ESCAPE_PCM_VEH_ODO"
+      name: "Vehicle Odometer (PCM)"
+      unit: "miles or km"
+      description: "Odometer reading stored in PCM"
+      ecu_address: "7E0"
+      suggested_metric: "odometer"
+      diagnostic_use: "Cross-reference odometer readings, detect tampering"
+
+# Cruise Control
+cruise_control_system:
+  ecu_address: "764"  # Cruise Control Module
+  parameters:
+    - pid: "ESCAPE_CC_TGT_VSS"
+      name: "Cruise Control Target Speed"
+      unit: "mph or km/h"
+      description: "Set cruise control speed"
+      diagnostic_use: "Monitor cruise control operation"
+
+# Vehicle Speed
+vehicle_speed:
+  ecu_address: "7E0"  # PCM
+  parameters:
+    - pid: "ESCAPE_VSS"
+      name: "Vehicle Speed"
+      unit: "mph or km/h"
+      description: "Vehicle speed from PCM"
+      suggested_metric: "speed"
+      diagnostic_use: "Monitor vehicle speed, verify VSS operation"
+
+# ECU Address Reference
+ecu_address_mapping:
+  "7E0":
+    name: "Powertrain Control Module (PCM)"
+    description: "Main engine and transmission control"
+    protocol: "ISO 15765-4 CAN (11-bit, 500 kbaud)"
+    parameters_count: "80+"
+    
+  "7DF":
+    name: "Generic OBD-II Broadcast"
+    description: "Standard OBD-II functional address"
+    protocol: "ISO 15765-4 CAN"
+    notes: "All OBD-II compliant modules should respond"
+    
+  "726":
+    name: "Body Control Module (BCM)"
+    description: "Body electrical, TPMS, battery management"
+    protocol: "MS-CAN (125 kbaud)"
+    parameters_count: "10+"
+    
+  "760":
+    name: "Anti-Lock Brake System (ABS)"
+    description: "Brake system, wheel speeds, stability control"
+    protocol: "ISO 15765-4 CAN (11-bit, 500 kbaud)"
+    parameters_count: "10+"
+    
+  "720":
+    name: "Instrument Panel Cluster (IPC)"
+    description: "Gauges, warning lights, odometer"
+    protocol: "MS-CAN (125 kbaud)"
+    parameters_count: "5+"
+    
+  "764":
+    name: "Cruise Control Module"
+    description: "Cruise control system"
+    protocol: "HS-CAN or MS-CAN"
+    parameters_count: "2+"
+
+# Suggested Metric Mappings
+# These map Ford-specific PIDs to standardized metric names for cross-platform compatibility
+suggested_metric_mappings:
+  speed: "ESCAPE_VSS"
+  engineLoad: "ESCAPE_ENG_LOAD_ACT or ESCAPE_ENG_LOAD_PCT"
+  engineCoolantTemperature: "ESCAPE_ECT"
+  shortTermFuelTrim: "ESCAPE_STFT"
+  fuelTankLevel: "ESCAPE_FLI or ESCAPE_FLI_ALT"
+  fuelRange: "ESCAPE_DTE or ESCAPE_DTE_DISP"
+  odometer: "ESCAPE_PCM_VEH_ODO or ESCAPE_ODO_726"
+  transmissionFluidTemperature: "ESCAPE_TOT"
+  frontLeftTirePressure: "ESCAPE_TP_FL"
+  frontRightTirePressure: "ESCAPE_TP_FR"
+  rearLeftTirePressure: "ESCAPE_TP_RLO or ESCAPE_TP_RLI"
+  rearRightTirePressure: "ESCAPE_TP_RRO or ESCAPE_TP_RRI"
+
+# Parameter Status Definitions
+parameter_status_definitions:
+  production:
+    description: "Fully tested and reliable for production use"
+    confidence: "High"
+    
+  debugging:
+    description: "Available but may need additional validation"
+    confidence: "Medium"
+    notes: "Use with caution, verify readings against known values"
+    
+  experimental:
+    description: "Newly discovered, limited testing"
+    confidence: "Low"
+    notes: "May not work on all model years or configurations"
+
+# Multi-Module Parameter Access
+multi_module_notes: |
+  Some parameters are available from multiple ECUs:
+  
+  Odometer:
+    - ESCAPE_ODO_726 (Instrument Cluster) - displayed value
+    - ESCAPE_PCM_VEH_ODO (PCM) - stored value
+    Use both to detect odometer tampering
+  
+  Fuel Level:
+    - ESCAPE_FLI (PCM) - calculated value
+    - ESCAPE_FLI_ALT (IPC) - displayed value
+    May differ slightly due to filtering
+  
+  Vehicle Speed:
+    - ESCAPE_VSS (PCM) - calculated from transmission
+    - ESCAPE_FR_VSS, ESCAPE_FL_VSS, etc. (ABS) - individual wheel speeds
+    Use wheel speeds to detect drivetrain slippage
+  
+  Distance to Empty:
+    - ESCAPE_DTE (calculated) - raw calculation
+    - ESCAPE_DTE_DISP (displayed) - filtered for driver display
+    Displayed value is smoothed to avoid rapid changes
+
+# Advanced Diagnostic Scenarios Using Extended Parameters
+
+advanced_diagnostics:
+  abs_wheel_speed_comparison:
+    description: "Compare all four wheel speeds to detect issues"
+    parameters:
+      - "ESCAPE_FR_VSS"
+      - "ESCAPE_FL_VSS"
+      - "ESCAPE_RR_VSS"
+      - "ESCAPE_RL_VSS"
+    interpretation: |
+      All four should be equal when driving straight.
+      Differences indicate:
+      - Tire size mismatch
+      - Wheel speed sensor failure
+      - Differential problems
+      - Tire pressure differences
+      
+  transmission_temperature_monitoring:
+    description: "Monitor transmission health via temperature"
+    parameters:
+      - "ESCAPE_TOT"
+      - "ESCAPE_ECT"
+    interpretation: |
+      Normal: Trans temp 10-20°C above coolant temp
+      Warning: Trans temp >110°C
+      Critical: Trans temp >120°C
+      If trans temp much higher than coolant, check:
+      - Transmission cooler
+      - Fluid level
+      - Torque converter lockup
+      
+  tpms_comprehensive_check:
+    description: "Full tire pressure monitoring"
+    parameters:
+      - "ESCAPE_TP_FL"
+      - "ESCAPE_TP_FR"
+      - "ESCAPE_TP_RLO"
+      - "ESCAPE_TP_RRO"
+      - "ESCAPE_TPMS_WARN"
+    interpretation: |
+      All tires should be within 2 psi of each other
+      Typical: 32-35 psi cold
+      Low pressure: <28 psi triggers warning
+      Check for:
+      - Slow leaks (gradual pressure drop)
+      - Temperature effects (pressure varies with temp)
+      - Sensor battery life (7-10 years typical)
+      
+  battery_health_assessment:
+    description: "Monitor battery condition"
+    parameters:
+      - "ESCAPE_BATT_SOC"
+      - "ESCAPE_BATT_TEMP"
+      - "ESCAPE_BATT_AGE"
+    interpretation: |
+      Healthy battery: SOC >80%, temp 10-40°C
+      Weak battery: SOC <70%, slow charging
+      Failed battery: SOC <50%, won't hold charge
+      Cold weather: Capacity reduced below 0°C
+      Hot weather: Accelerated aging above 40°C
+      
+  ac_system_diagnosis:
+    description: "Air conditioning system health"
+    parameters:
+      - "ESCAPE_AC_P"
+      - "ESCAPE_AC_STATE"
+      - "ESCAPE_AAT_ALT"
+    interpretation: |
+      Normal pressure: 25-45 psi (low side), 150-250 psi (high side)
+      Low pressure: System undercharged, leak present
+      High pressure: System overcharged, restriction, or cooling issue
+      Compressor cycling: Normal in hot weather
+      No pressure change when AC on: Compressor not engaging
+      
+  stability_control_monitoring:
+    description: "Monitor vehicle dynamics"
+    parameters:
+      - "ESCAPE_LAT_G"
+      - "ESCAPE_LAT_ANGLE"
+      - "ESCAPE_STEER_ANGLE"
+      - "ESCAPE_FR_VSS"
+      - "ESCAPE_FL_VSS"
+      - "ESCAPE_RR_VSS"
+      - "ESCAPE_RL_VSS"
+    interpretation: |
+      Lateral G: Cornering force (0.3-0.8g normal driving)
+      Lateral angle: Vehicle yaw (should match steering input)
+      Mismatched values indicate:
+      - Stability control intervention
+      - Tire slip
+      - Suspension issues
+      - Alignment problems
+
+# Data Logging Recommendations Extended
+data_logging_extended:
+  transmission_issues:
+    parameters:
+      - "ESCAPE_TOT"
+      - "ESCAPE_GEAR"
+      - "ESCAPE_GEAR_ENG"
+      - "ESCAPE_PCM_CMD_TRANS_GEAR_RATIO"
+      - "ESCAPE_RPM"
+      - "ESCAPE_VSS"
+      - "ESCAPE_ETC_ANG_ACT"
+    notes: "Log during test drive with various shift patterns"
+    
+  tpms_diagnosis:
+    parameters:
+      - "ESCAPE_TP_FL"
+      - "ESCAPE_TP_FR"
+      - "ESCAPE_TP_RLO"
+      - "ESCAPE_TP_RRO"
+      - "ESCAPE_TPMS_WARN"
+      - "ESCAPE_AAT_ALT"
+    notes: "Log over time to detect slow leaks"
+    
+  abs_issues:
+    parameters:
+      - "ESCAPE_FR_VSS"
+      - "ESCAPE_FL_VSS"
+      - "ESCAPE_RR_VSS"
+      - "ESCAPE_RL_VSS"
+      - "ESCAPE_BRK_FL_P"
+      - "ESCAPE_VSS"
+    notes: "Log during braking events"
+    
+  battery_charging:
+    parameters:
+      - "ESCAPE_BATT_SOC"
+      - "ESCAPE_BATT_TEMP"
+      - "ESCAPE_RPM"
+      - "ESCAPE_ERT"
+    notes: "Log from cold start through 30 minutes of driving"
+
+# Update History
+update_history:
+  - date: "2026-02-15"
+    version: "1.1"
+    changes: "Added extended parameters from OBDB dataset including TPMS, transmission, ABS, battery, and climate control"
+    parameters_added: 40+
+    source: "OBDB Community extended dataset"
+
+
+# Parameter Index by ECU Address
+# Quick reference for which parameters are available from each ECU
+
+parameter_index_by_ecu:
+  description: "Complete index of all 113 Ford Escape parameters organized by ECU address"
+  total_parameters: 113
+  
+  ecu_0x720:
+    name: "Instrument Panel Cluster (IPC)"
+    parameter_count: 2
+    parameters:
+      - ESCAPE_TPMS_WARN
+      - ESCAPE_FLI_ALT
+      
+  ecu_0x726:
+    name: "Body Control Module (BCM)"
+    parameter_count: 10
+    parameters:
+      - ESCAPE_TP_FL
+      - ESCAPE_TP_FR
+      - ESCAPE_TP_RRO
+      - ESCAPE_TP_RLO
+      - ESCAPE_TP_RRI
+      - ESCAPE_TP_RLI
+      - ESCAPE_BATT_AGE
+      - ESCAPE_ODO_726
+      - ESCAPE_BATT_SOC
+      - ESCAPE_BATT_TEMP
+      
+  ecu_0x760:
+    name: "Anti-Lock Brake System (ABS)"
+    parameter_count: 9
+    parameters:
+      - ESCAPE_PARK_BRK
+      - ESCAPE_LAT_G
+      - ESCAPE_FR_VSS
+      - ESCAPE_FL_VSS
+      - ESCAPE_RR_VSS
+      - ESCAPE_RL_VSS
+      - ESCAPE_LAT_ANGLE
+      - ESCAPE_BRK_FL_P
+      - ESCAPE_STEER_ANGLE
+      
+  ecu_0x764:
+    name: "Cruise Control Module"
+    parameter_count: 1
+    parameters:
+      - ESCAPE_CC_TGT_VSS
+      
+  ecu_0x7DF:
+    name: "OBD-II Functional/Broadcast Address"
+    parameter_count: 1
+    note: "Broadcast address - actual response comes from PCM (0x7E8)"
+    parameters:
+      - ESCAPE_TOT
+      
+  ecu_0x7E0:
+    name: "Powertrain Control Module (PCM)"
+    parameter_count: 90
+    parameters:
+      - ESCAPE_MAP_V
+      - ESCAPE_LPFP_DUTY
+      - ESCAPE_CL
+      - ESCAPE_VCT_INT_DUTY
+      - ESCAPE_VCT_EXH_DUTY
+      - ESCAPE_VCT_INT_ACT
+      - ESCAPE_VCT_EXH_ACT
+      - ESCAPE_VCT_INT_ERR
+      - ESCAPE_VCT_EXH_ERR
+      - ESCAPE_HPFP_V
+      - ESCAPE_PCM_CYL_HEAD_T_CORR
+      - ESCAPE_ETC_TRIM_LRN
+      - ESCAPE_TIP_V
+      - ESCAPE_TIP_ABS
+      - ESCAPE_BARO
+      - ESCAPE_BARO_V
+      - ESCAPE_RO2_V
+      - ESCAPE_EVAP_V
+      - ESCAPE_ECT
+      - ESCAPE_AC_P
+      - ESCAPE_AAT_V
+      - ESCAPE_VCT_EXH_DES
+      - ESCAPE_VCT_INT_DES
+      - ESCAPE_CL_LC
+      - ESCAPE_HPFP_DES
+      - ESCAPE_OAR
+      - ESCAPE_IGN_CORR_CYL1
+      - ESCAPE_KS1_RAW
+      - ESCAPE_KS2_RAW
+      - ESCAPE_PCM_ENG_EOP_RAW
+      - ESCAPE_CAT_SENS_V
+      - ESCAPE_CAT
+      - ESCAPE_WGDC
+      - ESCAPE_TIP_DES_ABS
+      - ESCAPE_LPFP_ACT
+      - ESCAPE_LPFP_SENS_V
+      - ESCAPE_PCM_CYL_HEAD_T_SENS_2_RAW
+      - ESCAPE_PCM_A_C_REFRIG_P
+      - ESCAPE_ETC_ANG_DES
+      - ESCAPE_ETC_ANG_ACT
+      - ESCAPE_EVAP_PURGE_CMD
+      - ESCAPE_IGN_TIM_CYL1
+      - ESCAPE_IAT_SENS_V
+      - ESCAPE_AXLE_GEAR_RATIO_MEAS
+      - ESCAPE_PCM_CMD_TRANS_GEAR_RATIO
+      - ESCAPE_PCM_CMD_TRANS_MAIN_LINE_P
+      - ESCAPE_DTE
+      - ESCAPE_DTE_DISP
+      - ESCAPE_AC_P_SENS_V
+      - ESCAPE_RPM
+      - ESCAPE_MIL_DIST
+      - ESCAPE_DIST_DTC_CLR
+      - ESCAPE_CAT_TEMP
+      - ESCAPE_ENG_LOAD_ACT
+      - ESCAPE_PCM_ENG_REFERENCE_TRQ
+      - ESCAPE_PCM_MISF_EVENTS_LATEST_CYC
+      - ESCAPE_PCM_VEH_ODO
+      - ESCAPE_ACC_POS
+      - ESCAPE_PCM_MISF_ACCEL_CYL1_NORM
+      - ESCAPE_PCM_MISF_ACCEL_CYL2_NORM
+      - ESCAPE_PCM_MISF_ACCEL_CYL3_NORM
+      - ESCAPE_PCM_MISF_ACCEL_CYL4_NORM
+      - ESCAPE_PCM_MISF_ACCEL_CYL6_NORM
+      - ESCAPE_TRQ_CTRL_REQ
+      - ESCAPE_MCT
+      - ESCAPE_LPFP_DES
+      - ESCAPE_BPV_OPEN
+      - ESCAPE_INJ_MODE
+      - ESCAPE_PCM_ENG_OIL_LIFE_REM
+      - ESCAPE_AAT_ALT
+      - ESCAPE_PCM_CYL_1_KNK_COMB_PERF_CNT
+      - ESCAPE_PCM_CYL_2_KNK_COMB_PERF_CNT
+      - ESCAPE_PCM_CYL_3_KNK_COMB_PERF_CNT
+      - ESCAPE_PCM_CYL_4_KNK_COMB_PERF_CNT
+      - ESCAPE_IAT_FAULT
+      - ESCAPE_GRILL_SHUT_DC
+      - ESCAPE_AC_STATE
+      - ESCAPE_ERT
+      - ESCAPE_GEAR
+      - ESCAPE_GEAR_ENG
+      - ESCAPE_GEAR_SHFT
+      - ESCAPE_ENG_LOAD_PCT
+      - ESCAPE_STFT
+      - ESCAPE_LTFT
+      - ESCAPE_MAP
+      - ESCAPE_VSS
+      - ESCAPE_IAT_ALT2
+      - ESCAPE_FLI
+      - ESCAPE_WARMUP_CLR
+      - ESCAPE_PCM_ACT_ENG_PCT_TRQ
+
+# ECU Response Address Mapping
+ecu_response_addresses:
+  description: "CAN response addresses for each ECU (request address + 8)"
+  mappings:
+    0x720: 0x728  # IPC request → IPC response
+    0x726: 0x72E  # BCM request → BCM response
+    0x760: 0x768  # ABS request → ABS response
+    0x764: 0x76C  # Cruise Control request → response
+    0x7DF: 0x7E8  # Broadcast → PCM responds
+    0x7E0: 0x7E8  # PCM request → PCM response
+
+# Broadcast Address Explanation
+broadcast_address_notes: |
+  0x7DF is the OBD-II functional/broadcast address defined in ISO 15765-4.
+  
+  How it works:
+  - Send request to 0x7DF (all ECUs listen)
+  - The ECU that handles that parameter responds
+  - Response comes from specific ECU address + 8
+  
+  Example:
+    Request:  0x7DF → [broadcast]
+    Response: 0x7E8 ← [PCM responds]
+  
+  Usage:
+  - Use 0x7DF for standard OBD-II Mode 01, 03, 07, 09 requests
+  - Use specific addresses (0x7E0, 0x726, etc.) for UDS commands
+  - Always expect response from (request_address + 8)
+  
+  ESCAPE_TOT (Transmission Oil Temperature):
+  - Listed under 0x7DF in OBDB
+  - Actually handled by PCM
+  - Response comes from 0x7E8 (PCM response address)
+
+# Parameter Status Summary
+parameter_status_summary:
+  total: 113
+  by_status:
+    production: 111
+    debugging: 2
+  debugging_parameters:
+    - ESCAPE_TPMS_WARN
+    - ESCAPE_CL
+    - ESCAPE_PCM_MISF_ACCEL_CYL6_NORM
+
+# Suggested Metrics Summary
+suggested_metrics_summary:
+  description: "Parameters with standardized metric mappings for API compatibility"
+  total_with_metrics: 15
+  mappings:
+    fuelTankLevel:
+      - ESCAPE_FLI_ALT
+      - ESCAPE_FLI
+    frontLeftTirePressure:
+      - ESCAPE_TP_FL
+    frontRightTirePressure:
+      - ESCAPE_TP_FR
+    rearRightTirePressure:
+      - ESCAPE_TP_RRO
+      - ESCAPE_TP_RRI
+    rearLeftTirePressure:
+      - ESCAPE_TP_RLO
+      - ESCAPE_TP_RLI
+    odometer:
+      - ESCAPE_ODO_726
+      - ESCAPE_PCM_VEH_ODO
+    transmissionFluidTemperature:
+      - ESCAPE_TOT
+    engineCoolantTemperature:
+      - ESCAPE_ECT
+    fuelRange:
+      - ESCAPE_DTE
+      - ESCAPE_DTE_DISP
+    engineLoad:
+      - ESCAPE_ENG_LOAD_ACT
+      - ESCAPE_ENG_LOAD_PCT
+    shortTermFuelTrim:
+      - ESCAPE_STFT
+    speed:
+      - ESCAPE_VSS
+
+# Quick Lookup Tables
+quick_lookup:
+  by_system:
+    engine_performance:
+      - ESCAPE_RPM
+      - ESCAPE_ENG_LOAD_ACT
+      - ESCAPE_ENG_LOAD_PCT
+      - ESCAPE_PCM_ACT_ENG_PCT_TRQ
+      - ESCAPE_PCM_ENG_REFERENCE_TRQ
+      - ESCAPE_TRQ_CTRL_REQ
+      - ESCAPE_ACC_POS
+      
+    fuel_system:
+      - ESCAPE_STFT
+      - ESCAPE_LTFT
+      - ESCAPE_LPFP_ACT
+      - ESCAPE_LPFP_DES
+      - ESCAPE_LPFP_DUTY
+      - ESCAPE_LPFP_SENS_V
+      - ESCAPE_HPFP_DES
+      - ESCAPE_HPFP_V
+      - ESCAPE_FLI
+      - ESCAPE_FLI_ALT
+      - ESCAPE_DTE
+      - ESCAPE_DTE_DISP
+      
+    tpms:
+      - ESCAPE_TPMS_WARN
+      - ESCAPE_TP_FL
+      - ESCAPE_TP_FR
+      - ESCAPE_TP_RLO
+      - ESCAPE_TP_RRO
+      - ESCAPE_TP_RLI
+      - ESCAPE_TP_RRI
+      
+    abs_brake:
+      - ESCAPE_FR_VSS
+      - ESCAPE_FL_VSS
+      - ESCAPE_RR_VSS
+      - ESCAPE_RL_VSS
+      - ESCAPE_BRK_FL_P
+      - ESCAPE_PARK_BRK
+      - ESCAPE_LAT_G
+      - ESCAPE_LAT_ANGLE
+      - ESCAPE_STEER_ANGLE
+      
+    transmission:
+      - ESCAPE_TOT
+      - ESCAPE_GEAR
+      - ESCAPE_GEAR_ENG
+      - ESCAPE_GEAR_SHFT
+      - ESCAPE_PCM_CMD_TRANS_GEAR_RATIO
+      - ESCAPE_PCM_CMD_TRANS_MAIN_LINE_P
+      - ESCAPE_AXLE_GEAR_RATIO_MEAS
+      
+    battery:
+      - ESCAPE_BATT_SOC
+      - ESCAPE_BATT_TEMP
+      - ESCAPE_BATT_AGE
+
+# Data Source
+data_source_update:
+  version: "1.2"
+  date: "2026-02-15"
+  source: "OBDB Community - Complete parameter list by ECU"
+  url: "https://obdb.community/#/vehicles/Ford/Escape"
+  total_parameters: 113
+  note: "Complete index of all parameters organized by ECU address"
