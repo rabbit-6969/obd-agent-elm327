@@ -1,0 +1,225 @@
+{
+  "version": "1.0.0",
+  "description": "Toolkit script registry for AI Vehicle Diagnostic Agent",
+  "scripts": {
+    "read_dtc": {
+      "path": "toolkit/vehicle_communication/read_dtc.py",
+      "category": "vehicle_communication",
+      "description": "Read diagnostic trouble codes from vehicle module",
+      "inputs": {
+        "port": {
+          "type": "string",
+          "required": true,
+          "description": "COM port for ELM327 adapter"
+        },
+        "module": {
+          "type": "string",
+          "required": false,
+          "description": "Module name (e.g., HVAC, ABS, PCM)"
+        },
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Module CAN address (hex)"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether operation succeeded"
+        },
+        "dtcs": {
+          "type": "array",
+          "description": "List of DTC codes found"
+        }
+      },
+      "example": "python toolkit/vehicle_communication/read_dtc.py --port COM3 --module HVAC"
+    },
+    "clear_dtc": {
+      "path": "toolkit/vehicle_communication/clear_dtc.py",
+      "category": "vehicle_communication",
+      "description": "Clear diagnostic trouble codes from vehicle module",
+      "inputs": {
+        "port": {
+          "type": "string",
+          "required": true,
+          "description": "COM port for ELM327 adapter"
+        },
+        "module": {
+          "type": "string",
+          "required": false,
+          "description": "Module name"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether codes were cleared"
+        },
+        "cleared": {
+          "type": "boolean",
+          "description": "Confirmation of clearing"
+        }
+      },
+      "example": "python toolkit/vehicle_communication/clear_dtc.py --port COM3"
+    },
+    "read_vin": {
+      "path": "toolkit/vehicle_communication/read_vin.py",
+      "category": "vehicle_communication",
+      "description": "Read vehicle identification number",
+      "inputs": {
+        "port": {
+          "type": "string",
+          "required": true,
+          "description": "COM port for ELM327 adapter"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether VIN was read"
+        },
+        "vin": {
+          "type": "string",
+          "description": "17-character VIN"
+        }
+      },
+      "example": "python toolkit/vehicle_communication/read_vin.py --port COM3"
+    },
+    "ai_search": {
+      "path": "toolkit/web_research/ai_search.py",
+      "category": "web_research",
+      "description": "AI-assisted web search for diagnostic procedures",
+      "inputs": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "vehicle": {
+          "type": "string",
+          "required": false,
+          "description": "Vehicle make/model/year"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether search succeeded"
+        },
+        "results": {
+          "type": "array",
+          "description": "Search results with commands"
+        }
+      },
+      "example": "python toolkit/web_research/ai_search.py --query \"Ford Escape HVAC DTC\""
+    },
+    "user_fallback": {
+      "path": "toolkit/web_research/user_fallback.py",
+      "category": "web_research",
+      "description": "User fallback mode for manual search",
+      "inputs": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query to present to user"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether user provided results"
+        },
+        "commands": {
+          "type": "array",
+          "description": "Extracted commands from user input"
+        }
+      },
+      "example": "python toolkit/web_research/user_fallback.py --query \"Ford HVAC diagnostics\""
+    },
+    "append_procedure": {
+      "path": "toolkit/knowledge_management/append_procedure.py",
+      "category": "knowledge_management",
+      "description": "Append diagnostic procedure to knowledge base",
+      "inputs": {
+        "vehicle": {
+          "type": "string",
+          "required": true,
+          "description": "Vehicle identifier"
+        },
+        "module": {
+          "type": "string",
+          "required": true,
+          "description": "Module name"
+        },
+        "procedure": {
+          "type": "object",
+          "required": true,
+          "description": "Procedure details (commands, responses)"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether procedure was saved"
+        }
+      },
+      "example": "python toolkit/knowledge_management/append_procedure.py --vehicle Ford_Escape_2008 --module HVAC"
+    },
+    "query_knowledge": {
+      "path": "toolkit/knowledge_management/query_knowledge.py",
+      "category": "knowledge_management",
+      "description": "Query knowledge base for diagnostic procedures",
+      "inputs": {
+        "vehicle": {
+          "type": "string",
+          "required": true,
+          "description": "Vehicle identifier"
+        },
+        "module": {
+          "type": "string",
+          "required": true,
+          "description": "Module name"
+        },
+        "action": {
+          "type": "string",
+          "required": false,
+          "description": "Diagnostic action"
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether procedure was found"
+        },
+        "procedure": {
+          "type": "object",
+          "description": "Procedure details"
+        }
+      },
+      "example": "python toolkit/knowledge_management/query_knowledge.py --vehicle Ford_Escape_2008 --module HVAC --action read_dtc"
+    }
+  },
+  "task_mappings": {
+    "read_diagnostic_codes": ["read_dtc"],
+    "clear_diagnostic_codes": ["clear_dtc"],
+    "identify_vehicle": ["read_vin"],
+    "research_procedure": ["ai_search", "user_fallback"],
+    "save_procedure": ["append_procedure"],
+    "lookup_procedure": ["query_knowledge"]
+  },
+  "categories": {
+    "vehicle_communication": {
+      "description": "Scripts for direct vehicle communication via ELM327",
+      "scripts": ["read_dtc", "clear_dtc", "read_vin"]
+    },
+    "web_research": {
+      "description": "Scripts for researching diagnostic procedures online",
+      "scripts": ["ai_search", "user_fallback"]
+    },
+    "knowledge_management": {
+      "description": "Scripts for managing diagnostic knowledge base",
+      "scripts": ["append_procedure", "query_knowledge"]
+    }
+  }
+}

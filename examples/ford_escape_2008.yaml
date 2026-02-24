@@ -1,0 +1,142 @@
+# Example Vehicle Profile: Ford Escape 2008
+# Complete vehicle profile with known modules and DTC descriptions
+
+vehicle:
+  make: "Ford"
+  model: "Escape"
+  year: 2008
+  vin: ""  # Will be read from vehicle
+  
+modules:
+  PCM:
+    name: "Powertrain Control Module"
+    address: "7E0"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Engine and transmission control"
+    
+  HVAC:
+    name: "Heating, Ventilation, and Air Conditioning"
+    address: "7A0"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Climate control system"
+    
+  ABS:
+    name: "Anti-lock Braking System"
+    address: "760"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Brake control and traction"
+    
+  BCM:
+    name: "Body Control Module"
+    address: "726"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Body electrical systems"
+    
+  IPC:
+    name: "Instrument Panel Cluster"
+    address: "720"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Dashboard instruments"
+    
+  ACM:
+    name: "Audio Control Module"
+    address: "737"
+    protocol: "CAN"
+    bus: "HS"
+    description: "Radio and audio system"
+
+dtc_descriptions:
+  # Powertrain DTCs
+  P0420:
+    description: "Catalyst System Efficiency Below Threshold (Bank 1)"
+    common_causes:
+      - "Catalytic converter failure"
+      - "Oxygen sensor malfunction"
+      - "Exhaust leak"
+    repair_hints:
+      - "Check oxygen sensor readings"
+      - "Inspect catalytic converter"
+      - "Look for exhaust leaks"
+      
+  P0171:
+    description: "System Too Lean (Bank 1)"
+    common_causes:
+      - "Vacuum leak"
+      - "MAF sensor dirty"
+      - "Fuel pressure low"
+    repair_hints:
+      - "Check for vacuum leaks"
+      - "Clean MAF sensor"
+      - "Test fuel pressure"
+      
+  # HVAC DTCs
+  P1632:
+    description: "HVAC Mix Door Actuator Circuit - Stuck"
+    common_causes:
+      - "Blend door actuator motor failure"
+      - "Mechanical binding in door"
+      - "Wiring harness issue"
+    repair_hints:
+      - "Test actuator operation manually"
+      - "Check for obstructions"
+      - "Inspect wiring and connectors"
+      
+  P1633:
+    description: "HVAC Mode Door Actuator Circuit Failure"
+    common_causes:
+      - "Mode door actuator failure"
+      - "Broken door linkage"
+    repair_hints:
+      - "Replace mode door actuator"
+      - "Check door movement"
+      
+  # ABS DTCs
+  C1145:
+    description: "ABS Wheel Speed Sensor RF Circuit Failure"
+    common_causes:
+      - "Wheel speed sensor failure"
+      - "Damaged sensor wiring"
+      - "Sensor air gap too large"
+    repair_hints:
+      - "Inspect sensor and wiring"
+      - "Check sensor air gap"
+      - "Replace sensor if faulty"
+      
+  C1095:
+    description: "ABS Hydraulic Pump Motor Circuit Failure"
+    common_causes:
+      - "ABS pump motor failure"
+      - "Wiring issue"
+      - "ABS module failure"
+    repair_hints:
+      - "Test pump motor operation"
+      - "Check power and ground"
+      - "May require ABS module replacement"
+
+common_procedures:
+  read_dtc:
+    description: "Read diagnostic trouble codes"
+    command: "03"
+    response_pattern: "43[0-9A-F]{4,}"
+    
+  clear_dtc:
+    description: "Clear diagnostic trouble codes"
+    command: "04"
+    response_pattern: "44"
+    
+  read_vin:
+    description: "Read vehicle identification number"
+    command: "09 02"
+    response_pattern: "49 02.*"
+
+notes:
+  - "2008 Ford Escape uses CAN bus for most modules"
+  - "High-speed CAN (HS-CAN) at 500 kbps"
+  - "Some modules may require extended diagnostic session"
+  - "HVAC module is known for blend door actuator issues"
+  - "ABS module may need special tool for bleeding"

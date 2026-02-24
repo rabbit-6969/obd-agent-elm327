@@ -1,0 +1,126 @@
+# Example Agent Configuration: OpenAI Backend
+# Configuration for using OpenAI as primary AI backend
+
+ai_backend:
+  # Primary backend
+  primary: "openai"
+  
+  # Fallback backends (tried in order if primary fails)
+  fallback:
+    - "claude"
+    - "ollama"
+  
+  # OpenAI configuration
+  openai:
+    model: "gpt-4"
+    temperature: 0.7
+    max_tokens: 2000
+    api_key_env: "OPENAI_API_KEY"  # Environment variable name
+  
+  # Claude configuration (fallback)
+  claude:
+    model: "claude-3-sonnet-20240229"
+    temperature: 0.7
+    max_tokens: 2000
+    api_key_env: "ANTHROPIC_API_KEY"
+  
+  # Ollama configuration (local fallback)
+  ollama:
+    model: "llama2"
+    base_url: "http://localhost:11434"
+    temperature: 0.7
+
+vehicle:
+  # COM port for ELM327 adapter
+  port: "COM3"  # Windows: COM3, Linux: /dev/ttyUSB0
+  
+  # Connection settings
+  baud_rate: 38400
+  timeout: 5
+  
+  # Auto-detect vehicle on startup
+  auto_detect: true
+
+web_research:
+  # Web research mode
+  mode: "ai_assisted"  # Options: ai_assisted, user_fallback, disabled
+  
+  # Enable web research
+  enabled: true
+  
+  # Search settings
+  max_results: 5
+  timeout: 10
+  
+  # Source prioritization
+  prioritize_official: true
+  
+  # Cross-reference related models
+  cross_reference: true
+
+safety:
+  # Require confirmation for dangerous operations
+  require_confirmation: true
+  
+  # Allow bypassing safety checks (NOT RECOMMENDED)
+  allow_bypass: false
+  
+  # Danger level thresholds
+  danger_levels:
+    safe: 0        # Read-only operations
+    caution: 1     # Write operations
+    warning: 2     # Actuations
+    danger: 3      # Critical systems
+
+knowledge_base:
+  # Knowledge base directory
+  path: "knowledge_base"
+  
+  # Auto-save successful procedures
+  auto_save: true
+  
+  # Backup knowledge base
+  backup_enabled: true
+  backup_interval: 86400  # 24 hours in seconds
+
+logging:
+  # Log level
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  
+  # Log directory
+  directory: "logs"
+  
+  # Session logging
+  session_log: true
+  
+  # Audit trail
+  audit_trail: true
+  
+  # Log rotation
+  max_size_mb: 10
+  backup_count: 5
+
+session:
+  # Session timeout (seconds)
+  timeout: 3600  # 1 hour
+  
+  # Auto-save session
+  auto_save: true
+  
+  # Generate report on exit
+  generate_report: true
+
+advanced:
+  # Script generation
+  script_generation_enabled: true
+  script_timeout: 30
+  
+  # Module discovery
+  auto_discover_modules: true
+  
+  # Event capture
+  event_capture_enabled: true
+  
+  # Parallel execution
+  parallel_scripts: false
+  max_workers: 3

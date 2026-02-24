@@ -1,0 +1,110 @@
+# Example Agent Configuration: Ollama (Local Models)
+# Configuration for using local AI models via Ollama
+# No API keys required - runs completely offline after initial setup
+
+ai_backend:
+  # Primary backend - Ollama (local)
+  primary: "ollama"
+  
+  # No fallback needed for offline operation
+  fallback: []
+  
+  # Ollama configuration
+  ollama:
+    model: "llama2"  # Options: llama2, mistral, codellama, etc.
+    base_url: "http://localhost:11434"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+vehicle:
+  # COM port for ELM327 adapter
+  port: "COM3"  # Windows: COM3, Linux: /dev/ttyUSB0
+  
+  # Connection settings
+  baud_rate: 38400
+  timeout: 5
+  
+  # Auto-detect vehicle on startup
+  auto_detect: true
+
+web_research:
+  # Disable web research for offline operation
+  mode: "user_fallback"
+  enabled: false
+  
+  # User will provide manual information when needed
+  manual_consultation: true
+
+safety:
+  # Require confirmation for dangerous operations
+  require_confirmation: true
+  
+  # Never allow bypassing safety checks
+  allow_bypass: false
+  
+  # Danger level thresholds
+  danger_levels:
+    safe: 0        # Read-only operations
+    caution: 1     # Write operations
+    warning: 2     # Actuations
+    danger: 3      # Critical systems
+
+knowledge_base:
+  # Knowledge base directory
+  path: "knowledge_base"
+  
+  # Auto-save successful procedures
+  auto_save: true
+  
+  # Backup knowledge base
+  backup_enabled: true
+  backup_interval: 86400  # 24 hours
+
+logging:
+  # Log level
+  level: "INFO"
+  
+  # Log directory
+  directory: "logs"
+  
+  # Session logging
+  session_log: true
+  
+  # Audit trail
+  audit_trail: true
+  
+  # Log rotation
+  max_size_mb: 10
+  backup_count: 5
+
+session:
+  # Session timeout (seconds)
+  timeout: 3600  # 1 hour
+  
+  # Auto-save session
+  auto_save: true
+  
+  # Generate report on exit
+  generate_report: true
+
+advanced:
+  # Script generation (limited without web access)
+  script_generation_enabled: false
+  
+  # Module discovery
+  auto_discover_modules: true
+  
+  # Event capture
+  event_capture_enabled: true
+  
+  # Parallel execution
+  parallel_scripts: false
+
+notes:
+  - "This configuration is optimized for offline operation"
+  - "Install Ollama from https://ollama.ai/"
+  - "Pull model: ollama pull llama2"
+  - "No API keys required"
+  - "Web research disabled - manual consultation mode"
+  - "All data stays local"
