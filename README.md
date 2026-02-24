@@ -1,16 +1,47 @@
-# ELM327 OBD-II Diagnostic Tool
+# AI Vehicle Diagnostic Agent
 
-A Python application for reading vehicle diagnostics from a 2008 Ford Escape using an ELM327 OBD-II adapter.
+An intelligent, AI-powered vehicle diagnostic system that combines OBD-II/UDS communication with natural language processing, web research, and continuous learning capabilities.
 
-## ✨ New: Professional UI
+## 🚀 Project Status
 
-The diagnostic tool now features a **clean, modern, and professional user interface** with:
-- Color-coded status indicators (✓ Success, ✗ Failure, ⚠ Warning)
-- Well-organized output with clear visual hierarchy
-- No verbose logger prefixes - clean and readable
-- Professional appearance suitable for any environment
+**Phase 1 (In Progress)**: Core infrastructure and Ford Escape 2008 HVAC diagnostics
 
-See [UI_PREVIEW.md](UI_PREVIEW.md) for visual examples!
+### ✅ Completed Components
+
+- **Project Setup**: Directory structure, configuration system
+- **Knowledge Management**: Technical data parser, vehicle profile handler, Ford Escape 2008 knowledge base
+- **Query Parser**: Natural language query parsing with ambiguity detection
+- **Web Research**: AI-assisted search, user fallback mode, Ford cross-reference search
+- **Vehicle Communication**: ELM327 base, read_dtc.py, clear_dtc.py toolkit scripts
+- **Agent Core**: Main agent loop, toolkit executor, diagnostic workflow, closed-loop feedback system
+
+### 🔄 In Progress
+
+- Toolkit scripts: read_vin.py, can_explore.py
+- Knowledge management scripts: append_procedure.py, query_knowledge.py
+- AI backend integration (OpenAI, Claude, Ollama)
+- Safety mechanisms and confirmation workflows
+
+See [.kiro/specs/ai-vehicle-diagnostic-agent/tasks.md](.kiro/specs/ai-vehicle-diagnostic-agent/tasks.md) for detailed task tracking.
+
+## ✨ Key Features
+
+### Current Capabilities
+- **Natural Language Interface**: Ask diagnostic questions in plain English
+- **Multi-Vehicle Support**: Ford Escape 2008, Toyota FJ Cruiser 2008 (expandable)
+- **ELM327 Communication**: Full OBD-II and UDS protocol support
+- **Knowledge Base**: Structured vehicle-specific diagnostic data
+- **Web Research**: AI-powered search for unknown procedures
+- **Closed-Loop Learning**: Documents successful diagnostics for future reuse
+- **Professional UI**: Color-coded status indicators and clean output
+
+### Planned Features
+- AI backend integration for intelligent query interpretation
+- Safety confirmation workflows for dangerous operations
+- Session logging and audit trails
+- Diagnostic report generation
+- Module discovery and registry
+- Script generation for custom diagnostics
 
 ## Features
 
@@ -82,12 +113,25 @@ The tool will:
 
 ## Documentation
 
-- 📖 [UI_PREVIEW.md](UI_PREVIEW.md) - Visual examples of the new UI
-- 📚 [UI_REFERENCE.md](UI_REFERENCE.md) - Complete UI formatter API reference
-- 📊 [BEFORE_AFTER.md](BEFORE_AFTER.md) - Side-by-side comparison of improvements
-- ✨ [UI_IMPROVEMENTS.md](UI_IMPROVEMENTS.md) - Overview of UI enhancements
-- 📝 [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Technical details
-- ✅ [COMPLETION_CHECKLIST.md](COMPLETION_CHECKLIST.md) - Implementation checklist
+### Project Documentation
+- 📋 [PROJECT_STATUS.md](PROJECT_STATUS.md) - Current project status and progress
+- 🎯 [NEXT_STEPS_AI_AGENT.md](NEXT_STEPS_AI_AGENT.md) - Roadmap and next steps
+- 📊 [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - Project organization
+
+### Specification Documents
+- 📖 [Requirements](.kiro/specs/ai-vehicle-diagnostic-agent/requirements.md) - Feature requirements
+- 🏗️ [Design](.kiro/specs/ai-vehicle-diagnostic-agent/design.md) - System design
+- ✅ [Tasks](.kiro/specs/ai-vehicle-diagnostic-agent/tasks.md) - Implementation tasks
+
+### Knowledge Base
+- 🚗 [Ford Escape 2008](knowledge_base/Ford_Escape_2008_profile.yaml) - Vehicle profile
+- 🔧 [Ford UDS Services](knowledge_base/Ford_UDS_Services_Complete.yaml) - UDS command reference
+- 📚 [Knowledge Base README](knowledge_base/README.md) - Knowledge organization
+
+### UI Documentation
+- 📖 [UI_PREVIEW.md](UI_PREVIEW.md) - Visual examples of the UI
+- 📚 [UI_REFERENCE.md](UI_REFERENCE.md) - UI formatter API reference
+- 📊 [BEFORE_AFTER.md](BEFORE_AFTER.md) - UI improvements comparison
 
 ## Example Output
 
@@ -178,20 +222,49 @@ Status: ⚠ ERRORS DETECTED
 - **P1473** - Cooling Fan Relay Control
 - **P1474** - Cooling Fan Relay Control Circuit
 
-## Module Architecture
+## Architecture
 
-- **elm327_adapter.py** - Low-level adapter communication and AT commands
+### Agent Core (`agent_core/`)
+- **agent.py** - Main agent loop and orchestration
+- **query_parser.py** - Natural language query parsing
+- **diagnostic_workflow.py** - Diagnostic workflow orchestration
+- **toolkit_executor.py** - Toolkit script execution
+- **feedback_system.py** - Closed-loop learning system
+
+### Toolkit Scripts (`toolkit/`)
+- **vehicle_communication/** - ELM327 communication, DTC reading/clearing
+- **web_research/** - AI-assisted search, user fallback mode
+- **knowledge_management/** - Technical data parser, profile handler
+
+### Knowledge Base (`knowledge_base/`)
+- Vehicle profiles (YAML)
+- Technical data (compact format)
+- UDS command definitions
+- DTC descriptions and repair hints
+
+### Legacy Diagnostic Tools (`elm327_diagnostic/`)
+- **elm327_adapter.py** - Low-level adapter communication
 - **vin_reader.py** - VIN extraction and validation
-- **hvac_diagnostics.py** - HVAC system diagnostics and DTC parsing
-- **main.py** - Main program flow and user interface
+- **hvac_diagnostics.py** - HVAC system diagnostics
+- **main.py** - Standalone diagnostic tool
 
-## Extending the Tool
+## Extending the System
 
-To add more diagnostic capabilities:
+### Adding New Vehicles
+1. Create vehicle profile YAML in `knowledge_base/`
+2. Add technical data file with module addresses and commands
+3. Document DTC codes and common issues
 
-1. Add new methods to `HVACDiagnostics` class
-2. Create new reader modules for other systems (Engine, Transmission, etc.)
-3. Implement custom OBD-II commands for vehicle-specific diagnostics
+### Adding New Toolkit Scripts
+1. Create script in appropriate `toolkit/` subdirectory
+2. Follow JSON input/output convention
+3. Register in toolkit registry
+4. Add to agent's available tools
+
+### Adding New Diagnostic Procedures
+1. Document procedure in knowledge base
+2. Test with vehicle
+3. System learns and reuses automatically
 
 ## Limitations
 
@@ -204,8 +277,17 @@ To add more diagnostic capabilities:
 
 Use at your own risk. Ensure you have proper authorization before accessing vehicle diagnostics.
 
+## Contributing
+
+This project follows a spec-driven development methodology. See the specification documents in `.kiro/specs/ai-vehicle-diagnostic-agent/` for detailed requirements, design, and implementation tasks.
+
 ## References
 
 - [OBD-II Standard](https://en.wikipedia.org/wiki/On-board_diagnostics)
+- [ISO 14229-1 UDS](reference/ISO_14229-1_UDS_INDEX.md) - Unified Diagnostic Services
 - [ELM327 Command Reference](https://www.elmelectronics.com/)
 - [Ford Vehicle Communications](https://owner.ford.com/)
+
+## GitHub Issues
+
+Track implementation progress on [GitHub Issues](https://github.com/rabbit-6969/obd-agent-elm327/issues)
