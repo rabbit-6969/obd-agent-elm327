@@ -1,5 +1,0 @@
-20:19:26 | DEBUG | [TX] AT COMMAND: AT RV
-20:19:26 | DEBUG | [TX] AT COMMAND: AT CV
-20:19:26 | DEBUG | [TX] AT COMMAND: AT DP
-20:19:26 | DEBUG | [TX] OBD COMMAND: 0100 (Mode: 01, PID: 00)
-20:19:26 | ERROR | [ERROR] Exception sending OBD command 0100: 'NoneType' object has no attribute 'write'

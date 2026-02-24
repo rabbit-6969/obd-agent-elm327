@@ -1,6 +1,0 @@
-{"name": "VIN_read_MULTI0902", "request": "0902", "response_raw": "49 02 01 31 46 4D 43 55 30 33 5A 36 38 4B 42 31 32 39 36 39", "response_ascii": "1FMFCU03Z68KB12969", "notes": "Multi-frame VIN assembled from 3 frames"}
-{"name": "Supported_PIDs_0100", "request": "0100", "response_raw": "41 00 BE 3F B8 13", "parsed": {"A": "BE", "B": "3F", "C": "B8", "D": "13"}, "notes": "Supported PIDs bitmask response"}
-{"name": "Readiness_0101", "request": "0101", "response_raw": "41 01 00 07 E5 00", "parsed": {"MIL": false, "DTC_count": 0, "monitors_bytes": ["00","07","E5","00"]}, "notes": "PID 01 monitor status"}
-{"name": "Pending_07", "request": "07", "response_raw": "47 00", "parsed": {"pending_count": 0}, "notes": "No pending DTCs"}
-{"name": "CoolantTemp_0105", "request": "0105", "response_raw": "41 05 32", "parsed": {"A": "32"}, "notes": "Coolant temp raw"}
-{"name": "Negative_7F_19", "request": "19", "response_raw": "7F 19 11", "notes": "Service 19 not supported (0x11)"}
