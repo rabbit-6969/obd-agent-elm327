@@ -1,0 +1,66 @@
+# Toyota FJ Cruiser 2008 - Technical Data
+# Generated: 2026-02-23
+# Version: 1.0
+# Format: compact-v1
+# Source: ISO 14229-1 UDS specification, Toyota/Lexus standard addressing
+
+## Modules
+# Status: accessible=full OBD-II support, partial=UDS accessible, not_accessible=requires proprietary tools
+M:ABS A:7B0 P:CAN B:HS S:partial
+M:PCM A:7E0 P:CAN B:HS S:accessible
+
+## Commands
+# ABS Module - UDS Service 0x19 (ReadDTCInformation)
+C:ABS.READ_DTC_ALL UDS:19 SF:02 MASK:FF R:59 02 [0-9A-F]+
+C:ABS.READ_DTC_CONFIRMED UDS:19 SF:02 MASK:08 R:59 02 [0-9A-F]+
+C:ABS.READ_DTC_PENDING UDS:19 SF:02 MASK:04 R:59 02 [0-9A-F]+
+C:ABS.READ_DTC_SUPPORTED UDS:19 SF:0A R:59 0A [0-9A-F]+
+C:ABS.CLEAR_DTC UDS:14 MASK:FFFFFF R:54
+
+# PCM Module - Standard OBD-II
+C:PCM.READ_DTC M:03 R:43[0-9A-F]{4,}
+C:PCM.CLEAR_DTC M:04 R:44
+C:PCM.READ_LIVE M:01 PID:05 R:41 05 [0-9A-F]{2}
+C:PCM.READ_VIN M:09 PID:02 R:49 02 01 [0-9A-F]+
+
+## DTC Parsing
+# Toyota/Lexus 3-byte DTC format
+DTC:C0XXX B:0-2 BITS:0-23 CALC:toyota_dtc
+DTC:P0XXX B:0-2 BITS:0-23 CALC:toyota_dtc
+DTC:B0XXX B:0-2 BITS:0-23 CALC:toyota_dtc
+DTC:U0XXX B:0-2 BITS:0-23 CALC:toyota_dtc
+
+## Response Parsing
+# UDS Service 0x19 responses
+R:READ_DTC_UDS PATTERN:59 02 ([0-9A-F]{2}) ([0-9A-F]{6})+ EXTRACT:dtc_count,dtc_data
+R:CLEAR_DTC_UDS PATTERN:54 MEANING:success
+R:NEGATIVE_RESPONSE PATTERN:7F 19 ([0-9A-F]{2}) EXTRACT:nrc
+
+# Standard OBD-II responses
+R:READ_DTC PATTERN:43([0-9A-F]{4})+ EXTRACT:dtc_hex
+R:CLEAR_DTC_SUCCESS PATTERN:44 MEANING:success
+
+## Bit Mappings
+# DTC Status Byte (ISO 14229-1)
+BM:test_failed BYTE:0 BIT:0 MEANING:0=passed,1=failed
+BM:test_failed_this_cycle BYTE:0 BIT:1 MEANING:0=no,1=yes
+BM:pending_dtc BYTE:0 BIT:2 MEANING:0=no,1=yes
+BM:confirmed_dtc BYTE:0 BIT:3 MEANING:0=no,1=yes
+BM:test_not_completed_since_clear BYTE:0 BIT:4 MEANING:0=completed,1=not_completed
+BM:test_failed_since_clear BYTE:0 BIT:5 MEANING:0=no,1=yes
+BM:test_not_completed_this_cycle BYTE:0 BIT:6 MEANING:0=completed,1=not_completed
+BM:warning_indicator BYTE:0 BIT:7 MEANING:0=off,1=on
+
+## Toyota-Specific DTC Decoding
+# 3-byte format: [HIGH_BYTE] [MID_BYTE] [LOW_BYTE]
+# HIGH_BYTE bits 7-6: DTC type (00=P, 01=C, 10=B, 11=U)
+# HIGH_BYTE bits 5-4: First digit
+# HIGH_BYTE bits 3-0 + MID_BYTE bits 7-4: Second digit
+# MID_BYTE bits 3-0 + LOW_BYTE bits 7-4: Third digit
+# LOW_BYTE bits 3-0: Fourth digit
+
+## Real Vehicle Test Responses (for test fixtures)
+# ABS Read All DTCs: 59 02 01 C1 55 1A 08 (1 DTC: C1551A, status 0x08)
+# ABS Clear DTCs: 54 (success)
+# ABS Negative Response: 7F 19 31 (requestOutOfRange)
+# PCM Read DTCs: 43 00 (no DTCs)

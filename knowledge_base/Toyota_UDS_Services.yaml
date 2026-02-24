@@ -1,0 +1,344 @@
+# Toyota/Lexus - UDS Services Reference
+# Unified Diagnostic Services (ISO 14229-1) implementation for Toyota vehicles
+# Source: ISO 14229-1 specification, Toyota diagnostic procedures
+
+uds_services:
+  service_0x19:
+    name: "ReadDTCInformation"
+    description: "Read diagnostic trouble codes with detailed status information"
+    request_format: "19 [SUB_FUNCTION] [PARAMETERS...]"
+    
+    sub_functions:
+      0x02:
+        name: "reportDTCByStatusMask"
+        description: "Report DTCs filtered by status mask"
+        request: "19 02 [STATUS_MASK]"
+        response: "59 02 [AVAILABILITY_MASK] [DTC_COUNT] [DTC_DATA...]"
+        status_masks:
+          0xFF: "All DTCs"
+          0x08: "Confirmed DTCs only"
+          0x04: "Pending DTCs only"
+          0x0C: "Confirmed or Pending"
+          0x01: "Test failed DTCs"
+        example:
+          request: "19 02 FF"
+          response: "59 02 FF 01 C1 55 1A 08"
+          interpretation: "1 DTC found: C1551A with status 0x08 (confirmed)"
+      
+      0x0A:
+        name: "reportSupportedDTC"
+        description: "List all DTCs supported by this module"
+        request: "19 0A"
+        response: "59 0A [DTC_LIST...]"
+        notes: "Returns list of all possible DTCs, not just active ones"
+      
+      0x04:
+        name: "reportDTCSnapshotIdentification"
+        description: "Get freeze frame data for DTCs"
+        request: "19 04"
+        response: "59 04 [SNAPSHOT_DATA...]"
+        notes: "Freeze frame data captured when DTC set"
+      
+      0x06:
+        name: "reportDTCExtDataRecordByDTCNumber"
+        description: "Get extended data for specific DTC"
+        request: "19 06 [DTC_HIGH] [DTC_MID] [DTC_LOW] [RECORD_NUM]"
+        response: "59 06 [EXTENDED_DATA...]"
+        notes: "Additional diagnostic information for specific DTC"
+  
+  service_0x14:
+    name: "ClearDiagnosticInformation"
+    description: "Clear DTCs and reset diagnostic data"
+    request_format: "14 [GROUP_HIGH] [GROUP_MID] [GROUP_LOW]"
+    
+    groups:
+      all_dtcs:
+        description: "Clear all DTCs"
+        request: "14 FF FF FF"
+        response: "54"
+        notes: "Most common usage - clears all stored DTCs"
+      
+      powertrain:
+        description: "Clear powertrain DTCs only"
+        request: "14 00 00 00"
+        response: "54"
+        notes: "Clears P0xxx and P2xxx codes"
+      
+      chassis:
+        description: "Clear chassis DTCs only"
+        request: "14 40 00 00"
+        response: "54"
+        notes: "Clears C0xxx codes (ABS, suspension, etc.)"
+      
+      body:
+        description: "Clear body DTCs only"
+        request: "14 80 00 00"
+        response: "54"
+        notes: "Clears B0xxx codes (body electronics)"
+      
+      network:
+        description: "Clear network DTCs only"
+        request: "14 C0 00 00"
+        response: "54"
+        notes: "Clears U0xxx codes (CAN communication)"
+  
+  service_0x22:
+    name: "ReadDataByIdentifier"
+    description: "Read live data parameters by DID"
+    request_format: "22 [DID_HIGH] [DID_LOW]"
+    response_format: "62 [DID_HIGH] [DID_LOW] [DATA...]"
+    notes: |
+      Toyota uses manufacturer-specific DIDs.
+      Common ranges:
+      - 0x0000-0x00FF: Basic module information
+      - 0x1000-0x1FFF: Live sensor data
+      - 0xF000-0xFFFF: Module identification
+    example:
+      request: "22 F1 00"
+      response: "62 F1 00 [PART_NUMBER...]"
+      interpretation: "Read module part number"
+
+# DTC Format (Toyota/Lexus 3-byte format)
+dtc_format:
+  description: "Toyota uses 3-byte DTC format per ISO 14229-1"
+  structure:
+    byte_1:
+      bits_7_6:
+        name: "DTC Type"
+        values:
+          0b00: "Powertrain (P)"
+          0b01: "Chassis (C)"
+          0b10: "Body (B)"
+          0b11: "Network (U)"
+      bits_5_4:
+        name: "First Digit"
+        range: "0-3"
+      bits_3_0:
+        name: "Second Digit (high nibble)"
+        range: "0-15"
+    
+    byte_2:
+      bits_7_4:
+        name: "Second Digit (low nibble)"
+        range: "0-15"
+      bits_3_0:
+        name: "Third Digit (high nibble)"
+        range: "0-15"
+    
+    byte_3:
+      bits_7_4:
+        name: "Third Digit (low nibble)"
+        range: "0-15"
+      bits_3_0:
+        name: "Fourth Digit"
+        range: "0-15"
+  
+  examples:
+    - raw: "C1 55 1A"
+      decoded: "C1551A"
+      breakdown:
+        byte_1: "0xC1 = 11000001b"
+        type: "01b = Chassis (C)"
+        digit_1: "00b = 1"
+        digit_2_high: "0001b = 5"
+        byte_2: "0x55 = 01010101b"
+        digit_2_low: "0101b = 5"
+        digit_3_high: "0101b = 1"
+        byte_3: "0x1A = 00011010b"
+        digit_3_low: "0001b = A"
+        digit_4: "1010b = (not used, always 0xA)"
+      result: "C1551A"
+    
+    - raw: "P0 17 1A"
+      decoded: "P0171A"
+      breakdown:
+        type: "Powertrain (P)"
+        digits: "0171A"
+      result: "P0171A"
+
+# DTC Status Byte (ISO 14229-1 Annex D)
+dtc_status_byte:
+  description: "8-bit status byte indicating DTC state"
+  bits:
+    bit_0:
+      name: "testFailed"
+      description: "Test failed at time of request"
+      values:
+        0: "Test passed or not complete"
+        1: "Test failed"
+    
+    bit_1:
+      name: "testFailedThisOperationCycle"
+      description: "Test failed this ignition cycle"
+      values:
+        0: "No failure this cycle"
+        1: "Failed this cycle"
+    
+    bit_2:
+      name: "pendingDTC"
+      description: "DTC is pending (not yet confirmed)"
+      values:
+        0: "Not pending"
+        1: "Pending"
+    
+    bit_3:
+      name: "confirmedDTC"
+      description: "DTC is confirmed (stored)"
+      values:
+        0: "Not confirmed"
+        1: "Confirmed"
+    
+    bit_4:
+      name: "testNotCompletedSinceLastClear"
+      description: "Test has not run since DTCs cleared"
+      values:
+        0: "Test completed"
+        1: "Test not completed"
+    
+    bit_5:
+      name: "testFailedSinceLastClear"
+      description: "Test failed at least once since clear"
+      values:
+        0: "No failures since clear"
+        1: "Failed since clear"
+    
+    bit_6:
+      name: "testNotCompletedThisOperationCycle"
+      description: "Test has not run this ignition cycle"
+      values:
+        0: "Test completed this cycle"
+        1: "Test not completed this cycle"
+    
+    bit_7:
+      name: "warningIndicatorRequested"
+      description: "Warning light should be illuminated"
+      values:
+        0: "Warning light off"
+        1: "Warning light on"
+  
+  common_values:
+    0x00: "No DTC (all bits clear)"
+    0x01: "Test failed currently"
+    0x04: "Pending DTC"
+    0x08: "Confirmed DTC"
+    0x0C: "Confirmed and pending"
+    0x09: "Confirmed, test failed currently"
+    0x88: "Confirmed, warning light on"
+    0x8C: "Confirmed, pending, warning light on"
+
+# Negative Response Codes (NRC)
+negative_response_codes:
+  format: "7F [SERVICE] [NRC]"
+  common_nrcs:
+    0x11:
+      name: "serviceNotSupported"
+      description: "ECU does not support this service"
+      action: "Check if correct service for this module"
+    
+    0x12:
+      name: "subFunctionNotSupported"
+      description: "Sub-function not supported"
+      action: "Try different sub-function"
+    
+    0x13:
+      name: "incorrectMessageLengthOrInvalidFormat"
+      description: "Message format error"
+      action: "Check request format"
+    
+    0x22:
+      name: "conditionsNotCorrect"
+      description: "Preconditions not met"
+      action: "Check vehicle state (ignition, engine, etc.)"
+    
+    0x31:
+      name: "requestOutOfRange"
+      description: "Parameter out of range"
+      action: "Check DID or parameter values"
+    
+    0x33:
+      name: "securityAccessDenied"
+      description: "Security access required"
+      action: "Perform security access procedure first"
+    
+    0x78:
+      name: "requestCorrectlyReceived-ResponsePending"
+      description: "ECU is processing, wait for final response"
+      action: "Wait for final response (not an error)"
+
+# Toyota/Lexus Module Addressing
+module_addressing:
+  description: "Common CAN addresses for Toyota/Lexus modules"
+  modules:
+    PCM:
+      name: "Powertrain Control Module"
+      request: "0x7E0"
+      response: "0x7E8"
+      protocol: "Standard OBD-II + UDS"
+    
+    ABS:
+      name: "Anti-Lock Braking System"
+      request: "0x7B0"
+      response: "0x7B8"
+      protocol: "UDS only (no standard OBD-II Mode 03)"
+      notes: "Must use Service 0x19 for DTCs"
+    
+    SRS:
+      name: "Supplemental Restraint System (Airbag)"
+      request: "0x7B1"
+      response: "0x7B9"
+      protocol: "UDS only"
+    
+    BCM:
+      name: "Body Control Module"
+      request: "0x750"
+      response: "0x758"
+      protocol: "UDS only"
+    
+    TCM:
+      name: "Transmission Control Module"
+      request: "0x7E1"
+      response: "0x7E9"
+      protocol: "UDS only"
+      notes: "Some models have integrated PCM/TCM"
+
+# Implementation Examples
+implementation_examples:
+  python_read_abs_dtcs:
+    description: "Read ABS DTCs using UDS Service 0x19"
+    code: |
+      import serial
+      import time
+      
+      def send_uds_command(ser, command):
+          # Send command
+          ser.write(command.encode() + b'\r')
+          time.sleep(0.1)
+          
+          # Read response
+          response = ser.read(ser.in_waiting).decode()
+          return response
+      
+      # Initialize ELM327
+      ser = serial.Serial('COM3', 38400, timeout=1)
+      send_uds_command(ser, 'ATZ')  # Reset
+      send_uds_command(ser, 'ATE0')  # Echo off
+      send_uds_command(ser, 'ATH1')  # Headers on
+      send_uds_command(ser, 'ATSP6')  # ISO 15765-4 CAN (11 bit, 500 kbaud)
+      
+      # Set ABS module address
+      send_uds_command(ser, 'ATSH7B0')
+      
+      # Read all DTCs (Service 0x19, sub-function 0x02, mask 0xFF)
+      response = send_uds_command(ser, '1902FF')
+      
+      # Parse response
+      # Expected: 59 02 [STATUS_MASK] [DTC_COUNT] [DTC_DATA...]
+      print(f"Response: {response}")
+
+# Version History
+version_history:
+  - version: "1.0"
+    date: "2026-02-23"
+    changes: "Initial Toyota/Lexus UDS services reference"
+    author: "AI Diagnostic Agent Development"
+    source: "ISO 14229-1 specification, Toyota diagnostic procedures"

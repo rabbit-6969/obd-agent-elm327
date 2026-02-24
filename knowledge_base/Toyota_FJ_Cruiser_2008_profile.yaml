@@ -1,0 +1,246 @@
+# Toyota FJ Cruiser 2008 - Vehicle Profile
+# Human-readable descriptions and repair context
+
+vehicle:
+  make: Toyota
+  model: FJ Cruiser
+  year: 2008
+  vin_pattern: "JTE.*"
+  generation: "First Generation (2007-2014)"
+  engine: "1GR-FE V6 4.0L"
+  transmission: "Automatic (A750F 5-speed)"
+  fuel: "Gasoline"
+  notes: "Uses CAN 2.0b protocol, HS-CAN for diagnostics. ABS module requires UDS Service 0x19 for DTC reading (standard OBD-II Mode 03 not supported)."
+
+modules:
+  ABS:
+    full_name: "Anti-Lock Braking System Module"
+    location: "Engine bay, driver side near brake master cylinder"
+    address: "7B0"
+    response_address: "7B8"
+    protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+    accessibility: "PARTIAL"  # UDS accessible, not standard OBD-II
+    diagnostic_protocol: "UDS Service 0x19"
+    part_numbers:
+      - "89540-35XXX"  # Varies by trim/options
+    common_issues:
+      - "Wheel speed sensor failure"
+      - "ABS pump motor failure"
+      - "Yaw rate sensor issues"
+      - "Steering angle sensor calibration"
+    diagnostic_notes: |
+      ABS module does NOT respond to standard OBD-II Mode 03 (ReadDTC).
+      Must use UDS Service 0x19 (ReadDTCInformation) instead.
+      
+      Typical Toyota/Lexus ABS addressing:
+      - Request: 0x7B0
+      - Response: 0x7B8
+      
+      UDS Service 0x19 sub-functions:
+      - 0x02: reportDTCByStatusMask (read DTCs with status filter)
+      - 0x0A: reportSupportedDTC (list all supported DTCs)
+      - 0x04: reportDTCSnapshotIdentification (freeze frame data)
+      
+      DTC Status Mask (8 bits):
+      - 0xFF: All DTCs
+      - 0x08: Confirmed DTCs only
+      - 0x04: Pending DTCs only
+      
+      DTC Format: 3 bytes per DTC + 1 status byte
+      Example: C1 55 1A 08 = DTC C1551A with status 0x08 (confirmed)
+      
+      Clear DTCs: UDS Service 0x14 with mask 0xFFFFFF
+    repair_difficulty: "Moderate to Difficult"
+    test_results:
+      accessible: true
+      test_command: "19 02 FF"  # UDS ReadDTCInformation
+      test_response: "59 02 [DTC_COUNT] [DTC_DATA...]"
+      notes: "Responds to UDS, not standard OBD-II Mode 03"
+  
+  PCM:
+    full_name: "Powertrain Control Module"
+    location: "Engine bay, passenger side"
+    address: "7E0"
+    protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+    accessibility: "FULL"  # Fully accessible via standard OBD-II
+    part_numbers:
+      - "89661-35XXX"  # Varies by year/trim
+    common_issues:
+      - "Oxygen sensor failures"
+      - "MAF sensor contamination"
+      - "Throttle position sensor drift"
+      - "VVT-i system issues"
+    diagnostic_notes: |
+      PCM is fully accessible via standard OBD-II.
+      Supports Mode 01 (live data), Mode 03 (read DTCs), Mode 04 (clear DTCs).
+      Most emissions-related DTCs come from PCM.
+    repair_difficulty: "Easy to Moderate"
+    test_results:
+      accessible: true
+      test_command: "03"
+      test_response: "43 [DTC_DATA]"
+      notes: "Fully functional via standard OBD-II"
+
+dtc_descriptions:
+  C1551A:
+    description: "ABS Actuator Solenoid Circuit Malfunction"
+    severity: "WARNING"
+    symptoms:
+      - "ABS warning light on"
+      - "ABS not functioning"
+      - "Traction control disabled"
+      - "VSC (Vehicle Stability Control) disabled"
+    common_causes:
+      - "ABS actuator solenoid failure"
+      - "Wiring harness damage"
+      - "ABS hydraulic unit internal fault"
+      - "Low brake fluid level"
+    diagnostic_steps:
+      - "Check brake fluid level"
+      - "Inspect ABS actuator wiring for damage"
+      - "Test ABS actuator solenoid resistance"
+      - "Check for hydraulic leaks"
+      - "Scan for additional DTCs"
+    repair_hints:
+      - "ABS actuator is part of hydraulic unit"
+      - "Often requires complete hydraulic unit replacement"
+      - "Bleeding ABS system requires scan tool"
+      - "Calibrate steering angle sensor after repair"
+    parts_needed:
+      - "ABS hydraulic unit (if internal fault)"
+      - "Brake fluid (DOT 3)"
+    estimated_repair_time: "2-4 hours"
+    estimated_cost: "$800-2000 (if hydraulic unit replacement needed)"
+  
+  C1201:
+    description: "Engine Control System Malfunction"
+    severity: "WARNING"
+    symptoms:
+      - "ABS/VSC warning lights on"
+      - "Check engine light may be on"
+      - "Reduced traction control functionality"
+    common_causes:
+      - "Communication error between PCM and ABS"
+      - "Engine-related DTC causing ABS to disable"
+      - "CAN bus communication issue"
+    diagnostic_steps:
+      - "Check PCM for DTCs first"
+      - "Verify CAN bus communication"
+      - "Check wiring between PCM and ABS"
+      - "Clear DTCs and retest"
+    repair_hints:
+      - "Often secondary DTC caused by engine issue"
+      - "Fix engine DTCs first, then recheck ABS"
+      - "May clear automatically after engine repair"
+    estimated_repair_time: "Varies (depends on root cause)"
+    estimated_cost: "Varies"
+
+repair_procedures:
+  abs_dtc_reading:
+    title: "ABS DTC Reading via UDS Service 0x19"
+    difficulty: "Easy"
+    tools_needed:
+      - "ELM327 adapter or compatible scan tool"
+      - "Python 3.6+ with pyserial"
+      - "read_fj_cruiser_abs_dtcs.py script"
+    steps:
+      - "Connect ELM327 adapter to OBD-II port"
+      - "Turn ignition to ON position (engine off)"
+      - "Run: python read_fj_cruiser_abs_dtcs.py --port COM3"
+      - "Select option 1 (Read all DTCs) or 2 (Confirmed only)"
+      - "Review DTC codes and status bytes"
+      - "Document DTCs for repair"
+    warnings:
+      - "Do not attempt to clear DTCs without diagnosing first"
+      - "Some DTCs may require professional diagnosis"
+      - "Clearing DTCs does not fix underlying issues"
+    time_estimate: "5-10 minutes"
+  
+  abs_dtc_clearing:
+    title: "Clear ABS DTCs via UDS Service 0x14"
+    difficulty: "Easy"
+    tools_needed:
+      - "ELM327 adapter or compatible scan tool"
+      - "Python 3.6+ with pyserial"
+      - "read_fj_cruiser_abs_dtcs.py script"
+    steps:
+      - "Connect ELM327 adapter to OBD-II port"
+      - "Turn ignition to ON position (engine off)"
+      - "Run: python read_fj_cruiser_abs_dtcs.py --port COM3"
+      - "Select option 5 (Clear all DTCs)"
+      - "Confirm clearing operation"
+      - "Turn ignition off, wait 10 seconds"
+      - "Turn ignition back on"
+      - "Verify DTCs are cleared (read again)"
+      - "Test drive to ensure issue is resolved"
+    warnings:
+      - "Only clear DTCs after repairs are complete"
+      - "DTCs will return if underlying issue not fixed"
+      - "Some DTCs require drive cycle to clear completely"
+    time_estimate: "5 minutes"
+
+related_vehicles:
+  - make: Toyota
+    model: 4Runner
+    years: [2003, 2004, 2005, 2006, 2007, 2008, 2009]
+    notes: "Similar ABS system, same UDS addressing (0x7B0/0x7B8)"
+  
+  - make: Toyota
+    model: Tacoma
+    years: [2005, 2006, 2007, 2008, 2009, 2010]
+    notes: "Similar ABS system, same diagnostic procedure"
+  
+  - make: Lexus
+    model: GX470
+    years: [2003, 2004, 2005, 2006, 2007, 2008, 2009]
+    notes: "Shares platform with 4Runner, identical ABS addressing"
+  
+  - make: Toyota
+    model: Sequoia
+    years: [2008, 2009, 2010, 2011, 2012]
+    notes: "Similar ABS system, same UDS protocol"
+  
+  - make: Toyota
+    model: Tundra
+    years: [2007, 2008, 2009, 2010, 2011, 2012]
+    notes: "Similar ABS system, same diagnostic procedure"
+
+technical_notes:
+  uds_vs_obdii:
+    title: "Why UDS Service 0x19 Instead of OBD-II Mode 03?"
+    explanation: |
+      Toyota/Lexus ABS modules do not implement standard OBD-II Mode 03 (ReadDTC).
+      This is manufacturer-specific behavior - Toyota chose to use UDS Service 0x19 instead.
+      
+      Differences:
+      - OBD-II Mode 03: Simple request (03), simple response (43 XX XX)
+      - UDS Service 0x19: More complex, requires sub-function and status mask
+      
+      Advantages of UDS Service 0x19:
+      - More detailed DTC status information (8-bit status byte)
+      - Can filter DTCs by status (confirmed, pending, etc.)
+      - Can retrieve freeze frame data
+      - Can list all supported DTCs
+      
+      This is why generic OBD-II scanners often cannot read ABS DTCs on Toyota vehicles.
+      Professional scan tools and manufacturer-specific tools support UDS Service 0x19.
+  
+  dtc_status_byte:
+    title: "Understanding DTC Status Byte"
+    explanation: |
+      Each DTC in UDS Service 0x19 response includes a status byte (8 bits):
+      
+      Bit 0 (testFailed): Test failed at time of request
+      Bit 1 (testFailedThisOperationCycle): Failed this ignition cycle
+      Bit 2 (pendingDTC): DTC is pending (not yet confirmed)
+      Bit 3 (confirmedDTC): DTC is confirmed (stored)
+      Bit 4 (testNotCompletedSinceLastClear): Test not run since clear
+      Bit 5 (testFailedSinceLastClear): Failed at least once since clear
+      Bit 6 (testNotCompletedThisOperationCycle): Test not run this cycle
+      Bit 7 (warningIndicatorRequested): Warning light should be on
+      
+      Common status values:
+      - 0x08: Confirmed DTC (bit 3 set)
+      - 0x04: Pending DTC (bit 2 set)
+      - 0x0C: Confirmed + Pending (bits 2 and 3 set)
+      - 0x88: Confirmed + Warning light (bits 3 and 7 set)
