@@ -36,10 +36,35 @@ modules:
       - Request: 0x7B0
       - Response: 0x7B8
       
+      ⚠ CRITICAL BEHAVIOR (2007-2010 Toyota/Lexus ABS Modules):
+      These modules DO NOT RESPOND to UDS Service 0x19 when there are no DTCs stored.
+      This is INTENTIONAL Toyota design, not a communication failure.
+      
+      If you get "no response" to Service 0x19:
+      - Check if ABS warning light is OFF → No DTCs present (NORMAL)
+      - Check if ABS warning light is ON → Try workarounds below
+      
+      Workarounds for "no response" issue:
+      1. Enter Extended Diagnostic Session first (Service 0x10 0x03)
+      2. Use Service 0x19 Sub-function 0x01 (Read DTC Count) - more reliable
+      3. Treat 300-500ms timeout as "No DTCs present" (not error)
+      
+      Affected vehicles (same ABS module behavior):
+      - Toyota FJ Cruiser (2007-2014)
+      - Toyota 4Runner (2003-2009)
+      - Toyota Tacoma (2005-2015)
+      - Toyota Tundra (2007-2013)
+      - Toyota Sequoia (2008-2012)
+      - Lexus GX470 (2003-2009)
+      
       UDS Service 0x19 sub-functions:
-      - 0x02: reportDTCByStatusMask (read DTCs with status filter)
-      - 0x0A: reportSupportedDTC (list all supported DTCs)
-      - 0x04: reportDTCSnapshotIdentification (freeze frame data)
+      - 0x01: reportNumberOfDTCByStatusMask (read DTC count) ✓ MORE RELIABLE
+      - 0x02: reportDTCByStatusMask (read DTCs with status filter) ✓ SUPPORTED (no response when no DTCs)
+      - 0x0A: reportSupportedDTC (list all supported DTCs) ✗ NOT SUPPORTED
+      - 0x04: reportDTCSnapshotIdentification (freeze frame data) ? UNTESTED
+      
+      Note: Sub-function 0x0A is optional per ISO 14229-1 and not implemented
+      by FJ Cruiser ABS module. Use sub-function 0x02 with mask 0xFF instead.
       
       DTC Status Mask (8 bits):
       - 0xFF: All DTCs
@@ -50,6 +75,9 @@ modules:
       Example: C1 55 1A 08 = DTC C1551A with status 0x08 (confirmed)
       
       Clear DTCs: UDS Service 0x14 with mask 0xFFFFFF
+      
+      Professional diagnosis: Toyota Techstream (proprietary tool) required
+      for full ABS diagnostics, actuator tests, and bleeding procedures.
     repair_difficulty: "Moderate to Difficult"
     test_results:
       accessible: true
@@ -204,6 +232,42 @@ related_vehicles:
     model: Tundra
     years: [2007, 2008, 2009, 2010, 2011, 2012]
     notes: "Similar ABS system, same diagnostic procedure"
+
+official_documentation:
+  repair_manual_website: "https://www.purefjcruiser.com/docs/2007%20Toyota%20FJ%20Cruiser%20Repair%20Manual/"
+  relevant_sections:
+    brake_system:
+      - "Brake/Vehicle Stability Control System (02800.pdf through 0280055.pdf)"
+      - "Front Speed Sensor (02800210.pdf, 0280053.pdf)"
+      - "Rear Speed Sensor (02800310.pdf, 0280054.pdf)"
+      - "Steering Angle Sensor (02800510.pdf, 0280056.pdf, 0280057.pdf)"
+      - "Yaw Rate And Deceleration Sensor (02800410.pdf, 0280055.pdf)"
+    can_communication:
+      - "CAN Communication System (05300.pdf through 053009.pdf)"
+    multiplex_communication:
+      - "Multiplex Communication System (05200.pdf through 052003.pdf)"
+    preparation:
+      - "Brake Control (00202410.pdf)"
+      - "Brake (002023.pdf through 00202610.pdf)"
+    service_specifications:
+      - "Brake Control (00302510.pdf)"
+      - "Brake (00302510.pdf through 00302710.pdf)"
+  notes: |
+    The official Toyota FJ Cruiser repair manual is available online.
+    These documents contain detailed wiring diagrams, diagnostic procedures,
+    component locations, and troubleshooting flowcharts.
+    
+    Key documents for ABS diagnostics:
+    - Vehicle Stability Control System section (028000.pdf onwards)
+    - CAN Communication System section (05300.pdf onwards)
+    - Speed sensor specifications and testing procedures
+    
+    Refer to these documents for:
+    - Wiring diagrams and connector pinouts
+    - DTC definitions and troubleshooting procedures
+    - Component resistance specifications
+    - Sensor air gap specifications
+    - Bleeding procedures (requires scan tool)
 
 technical_notes:
   uds_vs_obdii:

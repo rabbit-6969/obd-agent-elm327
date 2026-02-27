@@ -6,6 +6,10 @@ The AI Vehicle Diagnostic Agent enables autonomous vehicle diagnostics through O
 
 **Core Principle**: Start simple (no API keys), learn from user, become smarter over time.
 
+**Reference Implementations**:
+- **Phase 1**: Ford Escape 2008 HVAC diagnostics (standard OBD-II Mode 03)
+- **Phase 2**: Toyota FJ Cruiser 2008 ABS diagnostics (UDS Service 0x19, manufacturer-specific behavior)
+
 ## Architecture
 
 ### High-Level Components
@@ -259,9 +263,9 @@ safety:
 
 **See**: [configuration.md](./design/configuration.md) for complete config reference
 
-## Phase 1 Scope
+## Phase 1 & 2 Scope
 
-### Ford Escape 2008 HVAC Focus
+### Phase 1: Ford Escape 2008 HVAC Focus
 
 **Included**:
 - HVAC diagnostic procedures
@@ -270,11 +274,29 @@ safety:
 - Safety mechanisms for HVAC actuations
 - Audit logging
 
-**Deferred**:
-- Full multi-manufacturer support
+### Phase 2: Toyota FJ Cruiser 2008 ABS Focus (Completed)
+
+**Included**:
+- ABS DTC reading using UDS Service 0x19
+- Module presence verification using alternative DIDs
+- Toyota-specific "no response" behavior handling
+- Live ABS monitoring for intermittent faults
+- CAN address scanning for module discovery
+- Extended diagnostic session support
+- DTC count reading (Service 0x19 0x01)
+- Comprehensive documentation and troubleshooting guides
+
+**Key Learnings**:
+- Manufacturer-specific behaviors require special handling
+- "No response" doesn't always mean communication failure
+- Live monitoring essential for intermittent faults
+- Multiple diagnostic approaches needed (standard + workarounds)
+
+**Deferred to Future Phases**:
+- Full multi-manufacturer support beyond Ford/Toyota
 - Advanced script generation
 - Complex actuation sequences
-- Real-time CAN monitoring
+- Real-time CAN monitoring UI
 
 **See**: [implementation-phases.md](./design/implementation-phases.md) for roadmap
 

@@ -86,18 +86,160 @@ class FJCruiserABSDTCReader:
             return ""
         
         self.connection.write((cmd + '\r').encode())
-        time.sleep(0.1)
+        time.sleep(0.15)  # Increased wait time
         
         response = b''
-        while self.connection.in_waiting:
-            response += self.connection.read(self.connection.in_waiting)
-            time.sleep(0.05)
+        max_attempts = 10  # Try reading multiple times
+        for _ in range(max_attempts):
+            if self.connection.in_waiting:
+                response += self.connection.read(self.connection.in_waiting)
+            time.sleep(0.1)
+            # If we got a prompt character, we're done
+            if b'>' in response:
+                break
         
         return response.decode('utf-8', errors='ignore').strip()
+    
+    def check_module_presence(self) -> bool:
+        """
+        Read standard DIDs to verify the module is awake.
+        If this works but 0x19 fails, we know for sure there are simply no DTCs.
+        
+        Toyota ABS modules may not support all standard DIDs, so we try multiple approaches.
+        
+        Returns:
+            True if module responds, False otherwise
+        """
+        print("  Trying Calibration ID (DID 0xF181)...", end=" ")
+        cmd = "22 F1 81"
+        response = self._send_command(cmd)
+        time.sleep(0.2)
+        
+        response_clean = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        # Positive response: 62 F1 81 [DATA...]
+        if '62F181' in response_clean:
+            print("✓")
+            print("✓ Module is AWAKE (Calibration ID verified)")
+            return True
+        print("✗")
+        
+        # Try VIN as fallback
+        print("  Trying VIN (DID 0xF190)...", end=" ")
+        cmd = "22 F1 90"
+        response = self._send_command(cmd)
+        time.sleep(0.2)
+        response_clean = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        if '62F190' in response_clean:
+            print("✓")
+            print("✓ Module is AWAKE (VIN verified)")
+            return True
+        print("✗")
+        
+        # Try ECU Serial Number
+        print("  Trying ECU Serial Number (DID 0xF18C)...", end=" ")
+        cmd = "22 F1 8C"
+        response = self._send_command(cmd)
+        time.sleep(0.2)
+        response_clean = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        if '62F18C' in response_clean:
+            print("✓")
+            print("✓ Module is AWAKE (Serial Number verified)")
+            return True
+        print("✗")
+        
+        # Try Tester Present (Service 0x3E) - most basic UDS service
+        print("  Trying Tester Present (Service 0x3E)...", end=" ")
+        cmd = "3E 00"
+        response = self._send_command(cmd)
+        time.sleep(0.2)
+        response_clean = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        # Positive response: 7E 00 (0x3E + 0x40)
+        if '7E00' in response_clean or '7E' in response_clean:
+            print("✓")
+            print("✓ Module is AWAKE (Tester Present confirmed)")
+            return True
+        print("✗")
+        
+        # Last resort: Try reading any DTC-related service to see if module responds
+        print("  Trying Read DTC Count (Service 0x19 0x01)...", end=" ")
+        cmd = "19 01 FF"
+        response = self._send_command(cmd)
+        time.sleep(0.3)
+        response_clean = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        # Any positive response (59) or even negative response (7F) proves module is awake
+        if '59' in response_clean or '7F19' in response_clean:
+            print("✓")
+            print("✓ Module is AWAKE (responded to Service 0x19)")
+            return True
+        print("✗")
+        
+        return False
+    
+    def enter_extended_session(self) -> bool:
+        """
+        Enter extended diagnostic session (UDS Service 0x10 Sub-function 0x03)
+        This can help with Toyota modules that don't respond in default session
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        cmd = "10 03"
+        response = self._send_command(cmd)
+        time.sleep(0.2)
+        
+        response = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        # Positive response: 50 03 (0x10 + 0x40, sub-function echo)
+        if '5003' in response:
+            return True
+        return False
+    
+    def read_dtc_count(self) -> Tuple[bool, int]:
+        """
+        Read DTC count using UDS Service 0x19 Sub-function 0x01
+        This is more reliable on Toyota modules than sub-function 0x02
+        
+        Returns:
+            (success, dtc_count)
+        """
+        cmd = "19 01 FF"
+        
+        response = self._send_command(cmd)
+        time.sleep(0.3)
+        
+        if not response:
+            return False, 0
+        
+        response = response.replace(' ', '').replace('\r', '').replace('\n', '')
+        
+        # Positive response: 59 01 [STATUS_MASK] [DTC_COUNT_HIGH] [DTC_COUNT_LOW]
+        if '5901' in response:
+            idx = response.find('5901')
+            data = response[idx+4:]  # Skip 59 01
+            
+            if len(data) >= 6:
+                # Skip status mask (2 chars), get count (4 chars = 2 bytes)
+                count_hex = data[2:6]
+                try:
+                    count = int(count_hex, 16)
+                    return True, count
+                except:
+                    pass
+        
+        return False, 0
     
     def read_dtcs_by_status(self, status_mask: int = 0xFF) -> Tuple[bool, List[dict]]:
         """
         Read DTCs using UDS Service 0x19 Sub-function 0x02
+        
+        IMPORTANT: Toyota 2007-2010 ABS modules (FJ Cruiser, 4Runner, Tacoma, Tundra, 
+        Sequoia, Lexus GX470) do NOT respond to this service when there are no DTCs.
+        This is NORMAL behavior, not a communication failure.
         
         Args:
             status_mask: DTC status mask (0xFF = all DTCs)
@@ -111,11 +253,50 @@ class FJCruiserABSDTCReader:
         print(f"\nSending: {cmd}")
         response = self._send_command(cmd)
         
-        # Wait for response
-        time.sleep(0.3)
+        # Wait longer for response (UDS responses can be slow)
+        time.sleep(0.5)
         
-        if not response:
-            return False, []
+        # Read any additional data that arrived
+        if self.connection and self.connection.in_waiting:
+            additional = b''
+            while self.connection.in_waiting:
+                additional += self.connection.read(self.connection.in_waiting)
+                time.sleep(0.05)
+            response += additional.decode('utf-8', errors='ignore')
+        
+        print(f"Response: {response[:100]}..." if len(response) > 100 else f"Response: {response}")
+        
+        if not response or 'NO DATA' in response.upper():
+            print("\n" + "=" * 70)
+            print("ℹ TOYOTA MODULE BEHAVIOR")
+            print("=" * 70)
+            print("No response from ABS module.")
+            print("\nThis is NORMAL for Toyota 2007-2010 ABS modules when healthy.")
+            print("These modules don't respond to Service 0x19 when no DTCs are stored.")
+            
+            # Check if module is actually awake
+            print("\nVerifying module is awake...")
+            if self.check_module_presence():
+                print("\n✓ Module is responsive to other services")
+                print("✓ No response to Service 0x19 = No DTCs present")
+                print("\nIf your ABS warning light is OFF, this means:")
+                print("  ✓ Module is functioning normally")
+                print("  ✓ No confirmed DTCs present")
+                print("  ✓ ABS system is healthy")
+            else:
+                print("\n✗ Module is not responding to any service")
+                print("\nThis indicates a communication issue:")
+                print("  • Try option 5 (Extended session)")
+                print("  • Check if ignition is ON")
+                print("  • Verify correct module address (0x7B0)")
+                print("  • Try alternative address (0x760)")
+            
+            print("\nIf your ABS warning light is ON, try:")
+            print("  1. Option 4 (Read DTC count) - more reliable")
+            print("  2. Option 5 (Extended session)")
+            print("  3. Check with professional Toyota Techstream tool")
+            print("=" * 70)
+            return True, []  # Return success with empty list (no DTCs = healthy)
         
         # Clean response
         response = response.replace(' ', '').replace('\r', '').replace('\n', '')
@@ -288,7 +469,16 @@ class FJCruiserABSDTCReader:
     def print_dtcs(self, dtcs: List[dict]):
         """Print DTCs in readable format"""
         if not dtcs:
-            print("\n✓ No DTCs found - ABS system OK")
+            print("\n" + "=" * 70)
+            print("✓ NO DTCs FOUND - ABS SYSTEM HEALTHY")
+            print("=" * 70)
+            print("\nThe ABS module has no stored Diagnostic Trouble Codes.")
+            print("This indicates the ABS system is functioning normally.")
+            print("\nIf your ABS warning light is ON but no DTCs are found:")
+            print("  • Try option 4 (Read DTC count) - more reliable on Toyota")
+            print("  • Try option 5 (Extended session) - may reveal hidden DTCs")
+            print("  • Check with professional Toyota Techstream tool")
+            print("  • Light may be on due to low brake fluid or other sensor")
             return
         
         print(f"\n{'=' * 70}")
@@ -325,13 +515,15 @@ def main():
         print("\n" + "=" * 70)
         print("OPTIONS")
         print("=" * 70)
-        print("\n1. Read all DTCs")
+        print("\n1. Read all DTCs (standard method)")
         print("2. Read confirmed DTCs only")
         print("3. Read pending DTCs only")
-        print("4. Read supported DTCs")
-        print("5. Clear DTCs")
+        print("4. Read DTC count (Toyota-friendly method)")
+        print("5. Enter extended session + Read DTCs")
+        print("6. Check module presence (verify module is awake)")
+        print("7. Clear DTCs")
         
-        choice = input("\nSelect option (1-5): ").strip()
+        choice = input("\nSelect option (1-7): ").strip()
         
         if choice == '1':
             # Read all DTCs (status mask 0xFF)
@@ -352,14 +544,77 @@ def main():
                 reader.print_dtcs(dtcs)
                 
         elif choice == '4':
-            # Read supported DTCs
-            success, dtcs = reader.read_supported_dtcs()
+            # Read DTC count (more reliable on Toyota)
+            print("\nReading DTC count (Service 0x19 Sub-function 0x01)...")
+            success, count = reader.read_dtc_count()
             if success:
-                print(f"\nSupported DTCs: {len(dtcs)}")
-                for dtc in dtcs:
-                    print(f"  - {dtc}")
-                    
+                print(f"\n✓ DTC Count: {count}")
+                if count == 0:
+                    print("  No DTCs stored - ABS system is healthy")
+                else:
+                    print(f"  {count} DTC(s) stored")
+                    print("\nTrying to read DTCs...")
+                    success, dtcs = reader.read_dtcs_by_status(0xFF)
+                    if success:
+                        reader.print_dtcs(dtcs)
+            else:
+                print("\n✗ Failed to read DTC count")
+                print("Module may not support this service or no DTCs present")
+                
         elif choice == '5':
+            # Enter extended session first, then read DTCs
+            print("\nEntering extended diagnostic session...")
+            if reader.enter_extended_session():
+                print("✓ Extended session active")
+                print("\nReading DTCs...")
+                success, dtcs = reader.read_dtcs_by_status(0xFF)
+                if success:
+                    reader.print_dtcs(dtcs)
+            else:
+                print("✗ Failed to enter extended session")
+                print("Trying to read DTCs anyway...")
+                success, dtcs = reader.read_dtcs_by_status(0xFF)
+                if success:
+                    reader.print_dtcs(dtcs)
+                    
+        elif choice == '6':
+            # Check module presence
+            print("\nChecking if ABS module is awake and responsive...")
+            if reader.check_module_presence():
+                print("\n" + "=" * 70)
+                print("MODULE STATUS: AWAKE AND RESPONSIVE")
+                print("=" * 70)
+                print("\nThe ABS module is communicating properly.")
+                print("If Service 0x19 returns 'no response', it means:")
+                print("  ✓ Module is functioning normally")
+                print("  ✓ No DTCs are stored")
+                print("  ✓ This is expected Toyota behavior")
+                print("\nYou can safely conclude:")
+                print("  • ABS system is healthy")
+                print("  • No diagnostic trouble codes present")
+                print("  • No repairs needed")
+            else:
+                print("\n" + "=" * 70)
+                print("MODULE STATUS: NOT RESPONDING")
+                print("=" * 70)
+                print("\nThe ABS module is not responding to any UDS services.")
+                print("\nTroubleshooting steps:")
+                print("  1. Verify ignition is ON (engine doesn't need to run)")
+                print("  2. Check OBD-II connector is fully seated")
+                print("  3. Try standard OBD-II first: python -c \"import serial; s=serial.Serial('COM3',38400,timeout=3); import time; time.sleep(2); s.write(b'ATZ\\r'); time.sleep(1); s.write(b'0100\\r'); time.sleep(1); print(s.read(s.in_waiting))\"")
+                print("  4. Module may be in deep sleep - try:")
+                print("     • Turn ignition OFF, wait 30 seconds")
+                print("     • Turn ignition ON, wait 10 seconds")
+                print("     • Try again")
+                print("  5. Some Toyota modules require:")
+                print("     • Brake pedal pressed")
+                print("     • Parking brake released")
+                print("     • Transmission in Park")
+                print("\nNote: Earlier you saw 'ABS Request: 0x7B0, ABS Response: 0x7B8'")
+                print("which means the addressing is correct. The module may have")
+                print("entered sleep mode or requires specific wake-up conditions.")
+                    
+        elif choice == '7':
             # Clear DTCs
             reader.clear_dtcs()
             

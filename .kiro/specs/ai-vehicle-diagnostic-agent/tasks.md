@@ -5,6 +5,7 @@
 This implementation plan breaks down the AI Vehicle Diagnostic Agent into discrete coding tasks. The system will be built incrementally, starting with core infrastructure, then adding knowledge management, query parsing, web research, toolkit scripts, agent orchestration, and safety mechanisms. Each task builds on previous work, with testing integrated throughout.
 
 **Phase 1 Focus**: Ford Escape 2008 HVAC diagnostics as reference implementation.
+**Phase 2 Complete**: Toyota FJ Cruiser 2008 ABS diagnostics demonstrating manufacturer-specific behavior handling.
 
 ## Tasks
 
@@ -548,6 +549,56 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Create `examples/agent_config_openai.yaml` for OpenAI backend
     - Create `examples/agent_config_ollama.yaml` for local models
     - _Requirements: 15.1, 15.3_
+
+- [x] 26. Phase 2: Toyota FJ Cruiser 2008 ABS diagnostics
+  - [x] 26.1 Create Toyota FJ Cruiser knowledge base
+    - Create `knowledge_base/Toyota_FJ_Cruiser_2008_profile.yaml` with ABS module data
+    - Create `knowledge_base/Toyota_FJ_Cruiser_2008_technical.dat` with UDS commands
+    - Create `knowledge_base/Toyota_UDS_Services.yaml` with Toyota-specific UDS service definitions
+    - Document Toyota-specific behavior: no response to Service 0x19 when no DTCs present
+    - _Requirements: 7.2, 7.5, 18.1_
+  
+  - [x] 26.2 Implement Toyota ABS DTC reader
+    - Create `toolkit/diagnostic_procedures/read_fj_cruiser_abs_dtcs.py`
+    - Implement UDS Service 0x19 (ReadDTCInformation) with sub-functions 0x01, 0x02
+    - Implement module presence check using DIDs 0xF181, 0xF190, 0xF18C
+    - Implement extended diagnostic session (Service 0x10 0x03)
+    - Handle "no response" as normal behavior when no DTCs present
+    - Support multiple diagnostic approaches (7 menu options)
+    - _Requirements: 7.2, 18.1, 18.2, 18.3_
+  
+  - [x] 26.3 Implement Toyota ABS live monitoring
+    - Create `toolkit/diagnostic_procedures/monitor_fj_abs_live.py`
+    - Read warning light status using DID 0x213D
+    - Read individual wheel status using DID 0x215F
+    - Continuous polling for intermittent fault detection
+    - Fault logging and analysis
+    - Identify failing wheel sensors
+    - _Requirements: 18.4, 18.5_
+  
+  - [x] 26.4 Implement Toyota CAN address scanner
+    - Create `scripts/debug/scan_toyota_abs_addresses.py`
+    - Test multiple possible CAN addresses (0x750, 0x7B0, 0x760, 0x7E0)
+    - Test diagnostic session, VIN read, DTC read, tester present
+    - Identify correct module address
+    - Provide recommendations based on results
+    - _Requirements: 18.6, 18.7_
+  
+  - [x] 26.5 Create comprehensive documentation
+    - Create `FJ_CRUISER_ABS_DTC_GUIDE.md` with usage instructions
+    - Create `FJ_CRUISER_LIVE_ABS_MONITORING.md` with monitoring guide
+    - Create `TOYOTA_ABS_NO_RESPONSE_TROUBLESHOOTING.md` with troubleshooting steps
+    - Document Toyota-specific behavior and workarounds
+    - Include official repair manual references
+    - Document affected vehicles (FJ Cruiser, 4Runner, Tacoma, Tundra, Sequoia, GX470)
+    - _Requirements: 7.2, 18.1, 18.5_
+  
+  - [x] 26.6 Create Scion FR-S 2014 vehicle profile
+    - Create `knowledge_base/Scion_FRS_2014_profile.yaml`
+    - Document CAN ID mapping for all modules
+    - Document Toyota/Subaru collaboration details
+    - Include technical specifications and common issues
+    - _Requirements: 9.2, 9.5_
 
 ## Notes
 

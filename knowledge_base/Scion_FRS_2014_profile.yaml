@@ -1,0 +1,268 @@
+# Scion FR-S 2014 - Vehicle Profile
+# Toyota 86 / Subaru BRZ / Scion FR-S platform
+# Joint development between Toyota and Subaru
+
+vehicle:
+  make: Scion
+  model: FR-S
+  year: 2014
+  platform: "Toyota 86 / Subaru BRZ"
+  vin_pattern: "JF1.*|JN1.*"
+  generation: "First Generation (2012-2016)"
+  engine: "FA20 Boxer 2.0L (Subaru)"
+  transmission: "Manual 6-speed or Automatic 6-speed"
+  fuel: "Gasoline"
+  notes: |
+    Joint development between Toyota and Subaru.
+    Uses Subaru FA20 boxer engine with Toyota D-4S fuel injection.
+    Shares platform with Toyota 86 and Subaru BRZ.
+    CAN bus architecture uses Toyota/Subaru hybrid addressing.
+
+can_bus_architecture:
+  protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
+  notes: |
+    The FR-S uses a hybrid CAN architecture combining Toyota and Subaru protocols.
+    Each module has a request ID (RX) and response ID (ECU).
+    
+    Request ID (RX): Used to send commands to the module
+    Response ID (ECU): Used to receive data from the module
+    
+    Standard UDS services are supported on most modules.
+
+modules:
+  transmission:
+    full_name: "Transmission Control Module"
+    request_id: "0x727"
+    response_id: "0x72F"
+    protocol: "UDS"
+    notes: "Manual or automatic transmission control"
+  
+  main_body:
+    full_name: "Main Body Control Module"
+    request_id: "0x750"
+    response_id: "0x758"
+    protocol: "UDS"
+    notes: "Door locks, windows, lighting, wipers"
+  
+  airbag:
+    full_name: "Airbag Control Module"
+    request_id: "0x780"
+    response_id: "0x788"
+    protocol: "UDS"
+    notes: "SRS airbag system"
+  
+  precrash:
+    full_name: "Pre-Collision System"
+    request_id: "0x781"
+    response_id: "0x789"
+    protocol: "UDS"
+    notes: "Pre-collision safety system"
+  
+  distance_radar:
+    full_name: "Distance/Radar Module"
+    request_id: "0x790"
+    response_id: "0x798"
+    protocol: "UDS"
+    notes: "Radar for distance monitoring"
+  
+  precrash2:
+    full_name: "Pre-Collision System 2"
+    request_id: "0x791"
+    response_id: "0x799"
+    protocol: "UDS"
+    notes: "Secondary pre-collision module"
+  
+  steering_assist:
+    full_name: "Steering Assist / Power Steering"
+    request_id: "0x7A1"
+    response_id: "0x7A9"
+    protocol: "UDS"
+    notes: "Electric power steering control"
+  
+  park_assist:
+    full_name: "Park Assist / APGS"
+    request_id: "0x7A2"
+    response_id: "0x7AA"
+    protocol: "UDS"
+    notes: "Parking assist system (if equipped)"
+  
+  abs:
+    full_name: "Anti-Lock Braking System"
+    request_id: "0x7B0"
+    response_id: "0x7B8"
+    protocol: "UDS"
+    accessibility: "FULL"
+    common_issues:
+      - "Wheel speed sensor failure"
+      - "ABS pump issues"
+      - "Yaw rate sensor problems"
+    diagnostic_notes: |
+      ABS module uses standard UDS Service 0x19 for DTC reading.
+      Request: 0x7B0, Response: 0x7B8
+      
+      Unlike older Toyota vehicles, the FR-S ABS module should respond
+      even when no DTCs are present (more modern behavior).
+      
+      Common DTCs:
+      - C0xxx: Wheel speed sensors, ABS pump, hydraulic issues
+      - C1xxx: Communication and system faults
+  
+  instrument_cluster:
+    full_name: "Instrument Cluster / Combination Meter"
+    request_id: "0x7C0"
+    response_id: "0x7C8"
+    protocol: "UDS"
+    notes: "Speedometer, tachometer, gauges, warning lights"
+  
+  air_conditioner:
+    full_name: "Air Conditioning Control"
+    request_id: "0x7C4"
+    response_id: "0x7CC"
+    protocol: "UDS"
+    notes: "HVAC system control"
+  
+  navigation:
+    full_name: "Navigation System"
+    request_id: "0x7D0"
+    response_id: "0x7D8"
+    protocol: "UDS"
+    notes: "Navigation and infotainment (if equipped)"
+  
+  engine_control:
+    full_name: "Engine Control Module (ECM/ECT)"
+    request_id: "0x7E0"
+    response_id: "0x7E8"
+    protocol: "UDS"
+    accessibility: "FULL"
+    notes: |
+      Subaru FA20 boxer engine with Toyota D-4S direct + port injection.
+      Fully accessible via standard OBD-II and UDS.
+      Supports Mode 01 (live data), Mode 03 (DTCs), Mode 04 (clear DTCs).
+  
+  transmission_auto:
+    full_name: "Automatic Transmission Control"
+    request_id: "0x7E1"
+    response_id: "0x7E9"
+    protocol: "UDS"
+    notes: "Automatic transmission only (6-speed auto)"
+  
+  hybrid_cruise:
+    full_name: "Hybrid System / Cruise Control"
+    request_id: "0x7E2"
+    response_id: "0x7EA"
+    protocol: "UDS"
+    notes: "Cruise control system (FR-S is not hybrid)"
+
+diagnostic_procedures:
+  abs_dtc_reading:
+    title: "ABS DTC Reading via UDS"
+    difficulty: "Easy"
+    tools_needed:
+      - "ELM327 adapter"
+      - "Python 3.6+ with pyserial"
+    steps:
+      - "Connect ELM327 to OBD-II port"
+      - "Turn ignition ON"
+      - "Set header: ATSH 7B0"
+      - "Set response: ATFCSH 7B8"
+      - "Send: 19 02 FF (read all DTCs)"
+      - "Parse response: 59 02 [DTCs]"
+    notes: |
+      The FR-S ABS module should respond to UDS Service 0x19.
+      Unlike older Toyota vehicles, it responds even when no DTCs present.
+  
+  engine_dtc_reading:
+    title: "Engine DTC Reading"
+    difficulty: "Easy"
+    tools_needed:
+      - "Any OBD-II scanner"
+    steps:
+      - "Connect scanner to OBD-II port"
+      - "Turn ignition ON"
+      - "Read DTCs using Mode 03"
+    notes: "Standard OBD-II works for engine/emissions DTCs"
+
+common_issues:
+  valve_spring_recall:
+    description: "Valve spring recall (2013-2016 models)"
+    severity: "CRITICAL"
+    symptoms:
+      - "Engine misfires"
+      - "Loss of power"
+      - "Check engine light"
+      - "Rough idle"
+    notes: |
+      Subaru issued a recall for valve spring failures on FA20 engines.
+      Check if your VIN is affected: NHTSA Campaign 16V-574
+      Symptoms include misfires, loss of power, and potential engine damage.
+  
+  cricket_chirping_noise:
+    description: "High-pitched chirping noise from fuel pump"
+    severity: "MINOR"
+    symptoms:
+      - "Cricket-like chirping from rear"
+      - "Most noticeable when fuel tank is low"
+    notes: "Common issue, usually harmless but annoying"
+  
+  throwout_bearing:
+    description: "Throwout bearing noise (manual transmission)"
+    severity: "MODERATE"
+    symptoms:
+      - "Squealing when clutch pedal pressed"
+      - "Noise disappears when pedal released"
+    notes: "Common on manual transmission models"
+
+related_vehicles:
+  - make: Toyota
+    model: 86
+    years: [2013, 2014, 2015, 2016]
+    notes: "Identical platform, same CAN addressing"
+  
+  - make: Subaru
+    model: BRZ
+    years: [2013, 2014, 2015, 2016]
+    notes: "Identical platform, same CAN addressing"
+  
+  - make: Scion
+    model: FR-S
+    years: [2013, 2015, 2016]
+    notes: "Same generation"
+
+technical_specifications:
+  engine:
+    type: "Subaru FA20 Boxer"
+    displacement: "2.0L (1998cc)"
+    configuration: "Flat-4 (Boxer)"
+    power: "200 hp @ 7000 rpm"
+    torque: "151 lb-ft @ 6400-6600 rpm"
+    fuel_system: "Toyota D-4S (Direct + Port Injection)"
+    compression_ratio: "12.5:1"
+  
+  transmission:
+    manual: "6-speed manual"
+    automatic: "6-speed automatic with paddle shifters"
+  
+  dimensions:
+    wheelbase: "101.2 in"
+    length: "166.7 in"
+    width: "69.9 in"
+    height: "50.6 in"
+    weight: "2758 lbs (manual) / 2806 lbs (auto)"
+
+notes: |
+  The Scion FR-S is a sports car jointly developed by Toyota and Subaru.
+  It uses a Subaru FA20 boxer engine with Toyota's D-4S fuel injection system.
+  
+  Key characteristics:
+  - Rear-wheel drive
+  - Low center of gravity (boxer engine)
+  - 53/47 weight distribution
+  - Limited slip differential (Torsen on manual, electronic on auto)
+  
+  The CAN bus architecture is a hybrid of Toyota and Subaru protocols.
+  Most modules use standard UDS services and are accessible via ELM327.
+  
+  For detailed diagnostics, you may need:
+  - Toyota Techstream (for Toyota-specific modules)
+  - Subaru SSM (for engine-specific diagnostics)
+  - Generic UDS scanner (works for most modules)

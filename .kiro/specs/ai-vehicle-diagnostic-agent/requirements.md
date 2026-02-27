@@ -2,7 +2,13 @@
 
 ## Introduction
 
-The AI Vehicle Diagnostic Agent system provides a toolkit of Python scripts that enable an AI agent to autonomously interact with vehicles through OBD2 ports. The toolkit includes scripts for vehicle communication (via ELM327), web research for diagnostic procedures, knowledge documentation, and diagnostic execution. The AI agent uses these tools in a closed-loop feedback system: it executes diagnostics, documents findings, and uses that documentation to improve future diagnostic sessions. The system is initially focused on 2008 Ford Escape and similar-era Ford vehicles as Phase 1, but designed to be flexible and extensible to any vehicle manufacturer and model through the same toolkit approach.
+The AI Vehicle Diagnostic Agent system provides a toolkit of Python scripts that enable an AI agent to autonomously interact with vehicles through OBD2 ports. The toolkit includes scripts for vehicle communication (via ELM327), web research for diagnostic procedures, knowledge documentation, and diagnostic execution. The AI agent uses these tools in a closed-loop feedback system: it executes diagnostics, documents findings, and uses that documentation to improve future diagnostic sessions. 
+
+The system has two reference implementations:
+- **Phase 1**: 2008 Ford Escape HVAC diagnostics (standard OBD-II)
+- **Phase 2**: 2008 Toyota FJ Cruiser ABS diagnostics (UDS-based, manufacturer-specific behavior)
+
+The system is designed to be flexible and extensible to any vehicle manufacturer and model through the same toolkit approach.
 
 ## Glossary
 
@@ -94,17 +100,19 @@ The AI Vehicle Diagnostic Agent system provides a toolkit of Python scripts that
 4. THE Agent SHALL maintain a registry of known module addresses for Ford vehicles (e.g., HVAC, ABS, PCM, BCM)
 5. WHEN a new module is encountered, THE Agent SHALL add it to the registry after successful communication
 
-### Requirement 7: Ford-Specific Diagnostic Support
+### Requirement 7: Manufacturer-Specific Diagnostic Support
 
-**User Story:** As a technician working on Ford vehicles, I want the agent to have built-in knowledge of Ford diagnostic protocols, so that common Ford diagnostics work immediately.
+**User Story:** As a technician working on different vehicle makes, I want the agent to understand manufacturer-specific diagnostic behaviors, so that diagnostics work correctly across Ford, Toyota, and other manufacturers.
 
 #### Acceptance Criteria
 
 1. THE Agent SHALL include pre-documented procedures for 2008 Ford Escape HVAC diagnostics as Phase 1 reference implementation
-2. THE Agent SHALL support Ford-specific DTC code formats (P, C, B, U codes with Ford definitions)
-3. WHEN diagnosing Ford vehicles, THE Agent SHALL check both High CAN (500kbps) and Low CAN (125kbps) if initial attempts fail
-4. THE Agent SHALL recognize common Ford module names and their typical CAN addresses
-5. THE Agent SHALL support cross-referencing Ford Escape procedures with Ford Fusion and similar-era Ford models
+2. THE Agent SHALL include pre-documented procedures for 2008 Toyota FJ Cruiser ABS diagnostics as Phase 2 reference implementation
+3. THE Agent SHALL support manufacturer-specific DTC code formats (P, C, B, U codes with manufacturer definitions)
+4. WHEN diagnosing Ford vehicles, THE Agent SHALL check both High CAN (500kbps) and Low CAN (125kbps) if initial attempts fail
+5. WHEN diagnosing Toyota vehicles, THE Agent SHALL understand that ABS modules may not respond to UDS Service 0x19 when no DTCs are present (intentional design)
+6. THE Agent SHALL recognize common module names and their typical CAN addresses for each manufacturer
+7. THE Agent SHALL support cross-referencing procedures across similar-era vehicles from the same manufacturer
 
 ### Requirement 8: Python Script Generation and Execution
 
@@ -226,7 +234,31 @@ The AI Vehicle Diagnostic Agent system provides a toolkit of Python scripts that
 4. FOR ALL valid diagnostic data objects, serializing then deserializing SHALL produce an equivalent object (round-trip property)
 5. WHEN parsing fails, THE Agent SHALL log the raw response and provide a descriptive error message
 
-### Requirement 17: Error Handling and Recovery
+### Requirement 18: Toyota-Specific Diagnostic Behavior
+
+**User Story:** As a technician working on Toyota vehicles, I want the agent to understand Toyota's unique diagnostic behaviors, so that "no response" situations are correctly interpreted.
+
+#### Acceptance Criteria
+
+1. WHEN diagnosing Toyota ABS modules (2007-2010 era), THE Agent SHALL understand that no response to UDS Service 0x19 indicates no DTCs present (not a communication failure)
+2. WHEN a Toyota module doesn't respond to DTC read, THE Agent SHALL verify module presence using alternative DIDs (0xF181, 0xF190, 0xF18C)
+3. THE Agent SHALL support Toyota-specific workarounds including extended diagnostic session (Service 0x10 0x03) and DTC count read (Service 0x19 0x01)
+4. THE Agent SHALL support live monitoring of Toyota ABS systems using manufacturer-specific DIDs (0x213D for warning lights, 0x215F for wheel status)
+5. WHEN diagnosing intermittent Toyota ABS faults, THE Agent SHALL recommend live monitoring to capture faults as they occur
+6. THE Agent SHALL document Toyota-specific module addresses (0x7B0/0x7B8 for ABS) and alternative addresses (0x750/0x758)
+7. THE Agent SHALL provide address scanning capability to identify correct CAN addresses when standard addresses fail
+
+### Requirement 19: Error Handling and Recovery
+
+**User Story:** As a technician, I want the agent to handle errors gracefully, so that one failure doesn't stop the entire diagnostic session.
+
+#### Acceptance Criteria
+
+1. WHEN a command fails, THE Agent SHALL log the error and suggest alternative approaches
+2. WHEN CAN bus communication fails, THE Agent SHALL suggest checking connections and trying different CAN modes
+3. WHEN web research fails, THE Agent SHALL fall back to asking the user for manual information
+4. WHEN the AI backend is unavailable, THE Agent SHALL provide a degraded mode with basic command execution
+5. THE Agent SHALL never crash or exit unexpectedly; all errors SHALL be caught and reported to the user
 
 **User Story:** As a technician, I want the agent to handle errors gracefully, so that one failure doesn't stop the entire diagnostic session.
 
