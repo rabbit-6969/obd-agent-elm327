@@ -406,6 +406,178 @@ The system maintains two distinct knowledge directories with clear separation of
 
 **See**: [architecture.md](./design/architecture.md) for detailed search flow examples
 
+## Module Discovery Protocol
+
+When the agent encounters an unknown or undiscovered module (not in the knowledge base), it must follow a standardized identification protocol to properly categorize and document the module.
+
+### Discovery Workflow
+
+```
+Step 1: CAN Address Scanning (0x700 - 0x7DF)
+   ↓
+Step 2: Module Presence Detection (Tester Present 0x3E)
+   ↓
+Step 3: Vehicle Identification (Read VIN)
+   ↓
+Step 4: Module Identification (Read DIDs)
+   ↓
+Step 5: Document in Knowledge Base
+```
+
+### Step 1: CAN Address Scanning
+
+Scan the diagnostic address range to find responsive modules:
+
+**Address Range**: 0x700 - 0x7DF (request IDs)
+- Standard diagnostic range for most manufacturers
+- Response ID = Request ID + 0x08 (e.g., 0x7B0 → 0x7B8)
+
+**Toyota-Specific**:
+- Response ID = Request ID + 0x08
+- Newer models: ISO-14229 (UDS)
+- Older models: ISO-14230 (KWP2000)
+- Mixed implementations possible on same vehicle
+
+### Step 2: Module Presence Detection
+
+Use Tester Present (Service 0x3E) to detect responsive modules:
+
+**Try all three variants** (modules may respond to only one):
+1. `3E 01` - Tester Present with response suppression disabled
+2. `3E 00` - Tester Present with response suppression enabled
+3. `3E` - Tester Present (minimal format)
+
+**Expected Response**: `7E` (positive response to Tester Present)
+
+**Why this matters**:
+- Different modules implement different standards
+- Some respond to `3E 01`, others to `3E 00`, some to plain `3E`
+- A `7E` response confirms the module is alive and communicating
+
+### Step 3: Vehicle Identification
+
+Once a module responds, identify the vehicle:
+
+**Primary Method**: Read VIN (DID 0xF190)
+```
+Request:  22 F1 90
+Response: 62 F1 90 [17 bytes VIN]
+```
+
+**Why VIN first**:
+- Most universal identifier across manufacturers
+- Associates discovered module with specific vehicle
+- Same CAN ID may be different modules on different vehicles
+
+### Step 4: Module Identification DIDs
+
+After confirming module presence and vehicle identity, read module details:
+
+| DID    | Description              | Purpose                                    |
+|--------|--------------------------|-------------------------------------------|
+| 0xF190 | VIN                      | Identify which vehicle this module is in  |
+| 0xF181 | Calibration ID           | Module software version                   |
+| 0xF18C | ECU Serial Number        | Unique module identifier                  |
+| 0xF187 | Spare Part Number        | Hardware part number                      |
+| 0xF191 | ECU Hardware Number      | Hardware version                          |
+
+**Note**: Not all modules respond to all DIDs. Document which DIDs work for each module type.
+
+### Implementation Example
+
+```python
+def scan_and_discover_modules(port, start_addr=0x700, end_addr=0x7DF):
+    """Scan CAN address range and discover all responsive modules"""
+    
+    discovered_modules = []
+    
+    # Step 1 & 2: Scan addresses and test presence
+    for request_id in range(start_addr, end_addr + 1):
+        response_id = request_id + 0x08
+        
+        # Try all three Tester Present variants
+        for tester_present in ['3E 01', '3E 00', '3E']:
+            response = send_uds_command(request_id, tester_present)
+            
+            if response and '7E' in response:
+                # Module found!
+                module = discover_module_details(request_id, response_id)
+                discovered_modules.append(module)
+                break  # Found responsive variant, move to next address
+    
+    return discovered_modules
+
+def discover_module_details(request_id, response_id):
+    """Identify a discovered module"""
+    
+    module_info = {
+        'can_id_request': hex(request_id),
+        'can_id_response': hex(response_id),
+    }
+    
+    # Step 3: Read VIN to identify vehicle
+    vin = read_did(request_id, 0xF190)
+    if vin:
+        module_info['vehicle'] = lookup_vehicle_by_vin(vin)
+        module_info['vin'] = vin
+    
+    # Step 4: Read module identification DIDs
+    module_info['calibration_id'] = read_did(request_id, 0xF181)
+    module_info['serial_number'] = read_did(request_id, 0xF18C)
+    module_info['part_number'] = read_did(request_id, 0xF187)
+    module_info['hardware_number'] = read_did(request_id, 0xF191)
+    
+    # Step 5: Document in knowledge base
+    update_knowledge_base(module_info)
+    
+    return module_info
+```
+
+### Benefits
+
+1. **Comprehensive Discovery**: Finds all responsive modules on the CAN bus
+2. **Proper Categorization**: Modules are associated with specific vehicles via VIN
+3. **Knowledge Growth**: Discovery results are reusable for future sessions
+4. **Debugging**: Module identification helps troubleshoot communication issues
+5. **Multi-Vehicle Support**: Same CAN ID may be different modules on different vehicles
+6. **Standard Compliance**: Handles different protocol implementations (UDS, KWP2000)
+
+### Manufacturer-Specific Considerations
+
+**Toyota/Lexus**:
+- Response ID = Request ID + 0x08
+- Newer models (2010+): ISO-14229 (UDS)
+- Older models (pre-2010): ISO-14230 (KWP2000)
+- **Mixed implementations**: Even newer models may have legacy modules using ISO-14230
+- Some modules may not respond to all DIDs
+- VIN (0xF190) is most reliable for vehicle identification
+- ABS modules may not respond when no faults present (see Phase 2 learnings)
+
+**Ford**:
+- Most modules respond to standard DIDs
+- Part numbers help identify module function
+- Some modules require extended diagnostic session first
+- Response ID typically = Request ID + 0x08
+
+**General**:
+- Always try all three Tester Present variants (`3E 01`, `3E 00`, `3E`)
+- Always attempt VIN read first (most universal)
+- If VIN fails, try other DIDs to confirm module presence
+- Document which Tester Present variant works for each module
+- Document which DIDs work for each module type
+- Some modules may be on secondary CAN bus (unreachable via standard OBD-II port)
+
+### Integration with Existing Workflows
+
+The module discovery protocol integrates with:
+- **CAN Address Scanning**: Systematic scan of 0x700-0x7DF range
+- **Knowledge Base Updates**: Discovery results automatically added to vehicle profile
+- **Error Handling**: If module doesn't respond to standard DIDs, document alternative methods
+- **Learning System**: Successful discovery methods are remembered for similar modules
+- **Protocol Detection**: Identifies whether module uses UDS or KWP2000
+
+**See**: [learning-system.md](./design/learning-system.md) for how discovery results are stored
+
 ## Reference Documents
 
 ### Design Details
