@@ -300,6 +300,72 @@ safety:
 
 **See**: [implementation-phases.md](./design/implementation-phases.md) for roadmap
 
+### Passive CAN Bus Monitoring (Implemented)
+
+**Overview**: Passive CAN monitoring provides access to real-time vehicle parameters without sending UDS commands. This complements UDS diagnostics by accessing broadcast data on the CAN bus.
+
+**Key Capabilities**:
+- Discover all active CAN message IDs on the bus
+- Monitor transmission frequencies and data patterns
+- Identify changing vs. static data
+- Access real-time parameters (wheel speeds, gear, RPM) without module queries
+- Correlate unknown UDS DIDs with known CAN data
+
+**Implementation Scripts**:
+
+1. **CAN Bus Explorer** (`scripts/debug/explore_can_bus.py`)
+   - Uses ATMA command for passive monitoring
+   - Captures all CAN traffic for configurable duration (default 30s)
+   - Analyzes message frequencies and data variations
+   - Exports results to JSON for documentation
+   - Identifies which messages contain real-time vs. static data
+
+2. **Transmission Gear Monitor** (`scripts/debug/monitor_transmission_gear.py`)
+   - Monitors CAN message 0x228 (Transmission Status)
+   - Displays selector position (P/R/N/D), current gear (1-4)
+   - Shows shifting status and manual/triptronic mode
+   - No UDS commands needed - pure passive monitoring
+
+3. **ABS Wheel Speed Correlator** (`scripts/debug/correlate_abs_wheel_speeds.py`)
+   - Monitors CAN message 0x4B0 (wheel speeds) and ABS DIDs simultaneously
+   - Helps determine what unknown DIDs contain by correlation
+   - Useful for reverse-engineering unknown parameters
+
+**Reference Documentation**:
+
+1. **Mazda CAN Bus Reference** (`reference/Mazda_CAN_Bus_Reference.md`)
+   - Complete CAN message definitions for Ford CD2 platform
+   - Applies to Ford Escape/Mazda Tribute/Mercury Mariner 2008
+   - Documents message IDs, byte layouts, and scaling factors
+   - Covers both HS-CAN (500 kbps) and MS-CAN (125 kbps)
+
+2. **Valasek & Miller Research** (`reference/Valasek_Miller_Automotive_Networks_2014.md`)
+   - Comprehensive Ford Escape 2010 module mapping (15 modules)
+   - Module addresses, bus types, diagnostic capabilities
+   - SecurityAccess support documentation
+   - Directly applicable to 2008 Ford Escape (same CD2 platform)
+
+**Key CAN Messages** (Ford CD2 Platform):
+- 0x080: Engine RPM & Vehicle Speed
+- 0x228: Transmission Status & Gear
+- 0x231: Gear & Torque
+- 0x4B0: Wheel Speeds (All 4 wheels)
+- 0x4DA: Steering Wheel Angle
+- 0x4F2: Odometer
+
+**Design Benefits**:
+- No module queries needed for many parameters
+- Faster data access (broadcast vs. request/response)
+- Useful for data logging and custom dashboards
+- Helps reverse-engineer unknown UDS DIDs
+- Platform-specific knowledge documented and reusable
+
+**Integration with Agent**:
+- Agent can recommend passive monitoring when appropriate
+- CAN data complements UDS diagnostic data
+- Useful when modules don't respond to UDS queries
+- Provides alternative data sources for troubleshooting
+
 ## Integration with Existing Code
 
 ### Leveraging Current Codebase

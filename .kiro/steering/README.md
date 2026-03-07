@@ -31,8 +31,10 @@ Files with `inclusion: fileMatch` are included when specific files are in contex
 **Current file-match files**:
 - `toyota-specific-guidance.md` - Included when working with Toyota/Lexus/Scion vehicles
   - Pattern: `*Toyota*|*Lexus*|*Scion*`
-- `ford-specific-guidance.md` - Included when working with Ford/Lincoln/Mercury vehicles
-  - Pattern: `*Ford*|*Lincoln*|*Mercury*`
+- `ford-specific-guidance.md` - Included when working with Ford/Lincoln/Mercury/Mazda Tribute vehicles
+  - Pattern: `*Ford*|*Lincoln*|*Mercury*|*Mazda*Tribute*`
+- `nissan-infiniti-specific-guidance.md` - Included when working with Nissan/Infiniti/Datsun vehicles
+  - Pattern: `*Nissan*|*Infiniti*|*Datsun*`
 
 ### Manual Inclusion (On-Demand)
 
@@ -80,7 +82,17 @@ Files with `inclusion: manual` are only included when explicitly referenced by t
 - HVAC diagnostics
 - Module discovery approach
 - FORScan compatibility
-- Platform sharing information
+- Platform sharing information (Mazda Tribute, Mercury Mariner)
+
+**`nissan-infiniti-specific-guidance.md`**
+- Multi-protocol architecture (ISO-9141, ISO-14230, CAN, UART)
+- Critical timing requirements for ISO-9141 (100ms inter-request delays)
+- ISO-14230 Fast Init procedure
+- Module addresses and Fast Init indicators (ABS clicking)
+- Protocol selection strategy
+- Common issues and solutions
+- Platform sharing (350Z, G35, FX35)
+- ELM327 configuration for each protocol
 
 ### Safety and Protocols
 

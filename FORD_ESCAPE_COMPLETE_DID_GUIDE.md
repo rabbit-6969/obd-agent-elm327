@@ -11,6 +11,25 @@ This guide provides everything needed to discover and access transmission soleno
 - Solenoid states require SecurityAccess (0x27)
 - Your HS-CAN adapter is fully capable
 
+**Platform**: Ford CD2 (shared with Mazda Tribute, Mercury Mariner)
+
+## Related Documentation
+
+### CAN Bus Message Reference
+For passive CAN bus monitoring and broadcast message structures, see:
+- **`reference/Mazda_CAN_Bus_Reference.md`** - Complete HS-CAN (500 kbps) and MS-CAN (125 kbps) message documentation
+
+This includes reverse-engineered CAN message IDs for:
+- RPM, vehicle speed, wheel speeds (all 4 wheels)
+- Steering angle, accelerator pedal, brake status
+- Transmission gear position, odometer
+- Turn signals, lighting, HVAC status
+- Trip computer data (fuel consumption, range)
+
+**Two Diagnostic Methods:**
+1. **UDS Diagnostics** (this guide): Module-specific DIDs via OBD-II port (0x7E0 PCM, 0x760 ABS)
+2. **CAN Monitoring** (reference above): Broadcast messages for data logging and dashboards
+
 ## Tools Created
 
 1. **`brute_force_did_scanner.py`** - Complete DID discovery tool

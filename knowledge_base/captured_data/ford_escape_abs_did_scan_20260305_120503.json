@@ -1,0 +1,258 @@
+{
+  "scan_date": "2026-03-05T12:04:50.377369",
+  "vehicle": "Ford Escape 2008",
+  "module": "ABS (0x760)",
+  "identification_dids": {},
+  "operational_dids": {
+    "0200": {
+      "description": "Unknown Parameter 1 (confirmed working)",
+      "raw": "00",
+      "ascii": "\u0000",
+      "decimal": 0
+    },
+    "0202": {
+      "description": "Unknown Parameter 2 (confirmed working)",
+      "raw": "00",
+      "ascii": "\u0000",
+      "decimal": 0
+    }
+  },
+  "failed_dids": {
+    "F180": {
+      "description": "Boot Software Identification",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F181": {
+      "description": "Application Software Identification",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F182": {
+      "description": "Application Data Identification",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F183": {
+      "description": "Boot Software Fingerprint",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F184": {
+      "description": "Application Software Fingerprint",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F185": {
+      "description": "Application Data Fingerprint",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F186": {
+      "description": "Active Diagnostic Session",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F187": {
+      "description": "Vehicle Manufacturer Spare Part Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F188": {
+      "description": "Vehicle Manufacturer ECU Software Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F189": {
+      "description": "Vehicle Manufacturer ECU Software Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18A": {
+      "description": "System Supplier Identifier",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18B": {
+      "description": "ECU Manufacturing Date and Time",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18C": {
+      "description": "System Supplier ECU Hardware Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18D": {
+      "description": "System Supplier ECU Hardware Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18E": {
+      "description": "System Supplier ECU Software Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F18F": {
+      "description": "System Supplier ECU Software Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F190": {
+      "description": "Vehicle Identification Number (VIN)",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F191": {
+      "description": "Vehicle Manufacturer ECU Hardware Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F192": {
+      "description": "System Supplier ECU Hardware Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F193": {
+      "description": "System Supplier ECU Software Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F194": {
+      "description": "System Supplier ECU Software Version Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F195": {
+      "description": "System Name or Engine Type",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F196": {
+      "description": "Repair Shop Code or Tester Serial Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F197": {
+      "description": "Programming Date",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F198": {
+      "description": "Calibration Identification",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F199": {
+      "description": "Calibration Verification Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19A": {
+      "description": "Diagnostic Specification Version",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19B": {
+      "description": "Manufacturer Specific",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19C": {
+      "description": "Manufacturer Specific",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19D": {
+      "description": "ECU Serial Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19E": {
+      "description": "Vehicle Manufacturer Kit Assembly Part Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "F19F": {
+      "description": "VIN (Original)",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0201": {
+      "description": "Possible Wheel Speed FL",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0203": {
+      "description": "Possible Wheel Speed FR",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0204": {
+      "description": "Possible Wheel Speed RL",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0205": {
+      "description": "Possible Wheel Speed RR",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0206": {
+      "description": "Possible Wheel Speed Average",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0207": {
+      "description": "Possible Vehicle Speed",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0210": {
+      "description": "Possible Brake Pressure FL",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0211": {
+      "description": "Possible Brake Pressure FR",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0212": {
+      "description": "Possible Brake Pressure RL",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0213": {
+      "description": "Possible Brake Pressure RR",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0214": {
+      "description": "Possible Master Cylinder Pressure",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0215": {
+      "description": "Possible Brake Pedal Position",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0220": {
+      "description": "Possible ABS System Status",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0221": {
+      "description": "Possible Traction Control Status",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0222": {
+      "description": "Possible Stability Control Status",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0223": {
+      "description": "Possible Pump Motor Status",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0224": {
+      "description": "Possible Valve Status",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0230": {
+      "description": "Possible Lateral Acceleration",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0231": {
+      "description": "Possible Yaw Rate",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0232": {
+      "description": "Possible Steering Angle",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0233": {
+      "description": "Possible Brake Light Switch",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0100": {
+      "description": "Possible Module ID",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0101": {
+      "description": "Possible Hardware Version",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0102": {
+      "description": "Possible Software Version",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0103": {
+      "description": "Possible Calibration ID",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0104": {
+      "description": "Possible Serial Number",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    },
+    "0105": {
+      "description": "Possible Manufacturing Date",
+      "status": "NEGATIVE_RESPONSE_31_Request Out Of Range"
+    }
+  }
+}

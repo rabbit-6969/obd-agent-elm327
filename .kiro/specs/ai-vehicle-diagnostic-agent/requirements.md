@@ -162,7 +162,24 @@ The system is designed to be flexible and extensible to any vehicle manufacturer
 4. WHEN a module is discovered, THE Agent SHALL add it to the vehicle's module registry
 5. THE Agent SHALL support event-driven capture where the user describes an action and the agent captures corresponding CAN traffic
 
-### Requirement 11: Diagnostic Report Generation
+### Requirement 17: Passive CAN Bus Monitoring
+
+**User Story:** As a technician, I want to monitor real-time vehicle parameters from the CAN bus without sending UDS commands, so that I can access data that doesn't require module queries.
+
+#### Acceptance Criteria
+
+1. WHEN passive CAN monitoring is requested, THE Agent SHALL use ATMA command to monitor all CAN bus traffic without sending diagnostic commands
+2. THE Agent SHALL discover active CAN message IDs by analyzing transmission frequencies and data patterns
+3. THE Agent SHALL identify which CAN messages contain changing data (real-time parameters) versus static data (configuration)
+4. WHEN monitoring transmission gear, THE Agent SHALL read CAN message 0x228 to display selector position (P/R/N/D), current gear (1-4), shifting status, and manual mode
+5. WHEN monitoring wheel speeds, THE Agent SHALL read CAN message 0x4B0 to display all four wheel speeds without querying the ABS module
+6. THE Agent SHALL correlate unknown UDS DIDs with known CAN bus data to determine what parameters the DIDs contain
+7. THE Agent SHALL export CAN bus exploration results to JSON format for analysis and documentation
+8. THE Agent SHALL reference the Mazda CAN Bus Reference documentation for Ford CD2 platform vehicles (Escape/Tribute/Mariner)
+9. THE Agent SHALL reference the Valasek & Miller research for Ford Escape module addresses and diagnostic capabilities
+10. WHEN displaying CAN data, THE Agent SHALL apply correct scaling factors (e.g., wheel speeds: (X-10000)/100 km/h, RPM: X rpm)
+
+### Requirement 12: Diagnostic Report Generation
 
 **User Story:** As a technician, I want the agent to generate a diagnostic report after each session, so that I have documentation for repairs.
 

@@ -442,6 +442,49 @@ This implementation plan breaks down the AI Vehicle Diagnostic Agent into discre
     - Test event-driven capture
     - _Requirements: 6.4, 6.5, 11.3, 11.5_
 
+- [x] 27. Passive CAN bus monitoring implementation
+  - [x] 27.1 Implement CAN bus explorer script
+    - Create `scripts/debug/explore_can_bus.py`
+    - Use ATMA command for passive monitoring of all CAN traffic
+    - Analyze message frequencies and identify changing vs. static data
+    - Export results to JSON with CAN IDs, frequencies, and data patterns
+    - _Requirements: 17.1, 17.2, 17.3, 17.7_
+  
+  - [x] 27.2 Implement transmission gear monitor
+    - Create `scripts/debug/monitor_transmission_gear.py`
+    - Monitor CAN message 0x228 for transmission status
+    - Display selector position (P/R/N/D), current gear (1-4), shifting status
+    - Apply correct byte parsing and bit masking per Mazda CAN reference
+    - _Requirements: 17.4, 17.10_
+  
+  - [x] 27.3 Implement ABS wheel speed correlator
+    - Create `scripts/debug/correlate_abs_wheel_speeds.py`
+    - Monitor CAN message 0x4B0 (wheel speeds) and ABS DIDs simultaneously
+    - Correlate unknown DIDs with known CAN data to determine parameter contents
+    - Apply correct scaling factors ((X-10000)/100 km/h for wheel speeds)
+    - _Requirements: 17.5, 17.6, 17.10_
+  
+  - [x] 27.4 Document Mazda CAN bus reference
+    - Create `reference/Mazda_CAN_Bus_Reference.md`
+    - Document all CAN message IDs for Ford CD2 platform (Escape/Tribute/Mariner)
+    - Include byte layouts, scaling factors, and parameter descriptions
+    - Cover both HS-CAN (500 kbps) and MS-CAN (125 kbps) messages
+    - _Requirements: 17.8, 17.10_
+  
+  - [x] 27.5 Document Valasek & Miller research
+    - Create `reference/Valasek_Miller_Automotive_Networks_2014.md`
+    - Document Ford Escape 2010 module mapping (15 modules)
+    - Include module addresses, bus types, and diagnostic capabilities
+    - Document SecurityAccess support and platform applicability
+    - _Requirements: 17.9_
+  
+  - [ ]* 27.6 Write unit tests for CAN monitoring scripts
+    - Test CAN message parsing and scaling factor application
+    - Test transmission gear decoding logic
+    - Test wheel speed correlation algorithm
+    - Test JSON export format validation
+    - _Requirements: 17.3, 17.7, 17.10_
+
 - [ ] 20. Script generation and execution
   - [x] 20.1 Implement script generator
     - Create `agent_core/script_generator.py`

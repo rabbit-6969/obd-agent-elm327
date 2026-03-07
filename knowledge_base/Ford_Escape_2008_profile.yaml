@@ -96,6 +96,7 @@ modules:
     full_name: "Anti-Lock Braking System Module"
     location: "Engine bay, driver side near brake master cylinder"
     address: "760"
+    response_address: "768"
     protocol: "ISO 15765-4 CAN (11 bit ID, 500 kbaud)"
     accessibility: "PARTIAL"  # Responds but limited functionality
     part_numbers:
@@ -107,30 +108,65 @@ modules:
     diagnostic_notes: |
       ABS module requires vehicle stationary for some tests.
       Wheel speed sensors are common failure points.
-      Responds to queries but returns "service not supported" for Mode 03.
-      This is normal for non-powertrain modules in this vehicle generation.
-      Test response: 7F 03 11 (service not supported)
+      
+      CONFIRMED COMMUNICATION (2026-03-05):
+      - Module responds to Tester Present (3E 01) with 7E
+      - Address: 0x760 (request) / 0x768 (response)
+      - Working Tester Present variant: 3E 01
+      
+      SUPPORTED SERVICES:
+      - Service 0x3E (Tester Present): SUPPORTED (3E 01 variant)
+      - Service 0x22 (Read Data By Identifier): SUPPORTED (limited DIDs)
+      
+      NOT SUPPORTED (returns 7F negative response):
+      - Service 0x10 (Diagnostic Session Control): 7F 10 12 (sub-function not supported)
+      - Service 0x19 (Read DTC Information): 7F 19 11 (service not supported)
+      - Service 0x22 with standard DIDs (F190, F181, F18C, F187, F191): 7F 22 31 (request out of range)
+      
+      This is NORMAL for Ford ABS modules - they use manufacturer-specific protocols.
+      Standard UDS identification DIDs are not supported.
+      DTC reading requires Ford-specific methods (not standard Service 0x19).
       
       ABS parameters accessible via UDS Service 0x22 (ReadDataByIdentifier):
       - DID 0x0200: Unknown ABS parameter
         Response: 62 02 00 00
         Formula: TBD (needs investigation)
+        Status: CONFIRMED WORKING (2026-03-05)
       
-      - DID 0x0201: Unknown ABS parameter
+      - DID 0x0202: Unknown ABS parameter
         Response: 62 02 02 00
         Formula: TBD (needs investigation)
+        Status: CONFIRMED WORKING (2026-03-05)
       
       Additional DIDs to discover (0x0200-0x02FF range):
       - Wheel speed sensor values
       - ABS pump status
       - Brake pressure values
       - System status flags
+      
+      TROUBLESHOOTING:
+      - If no response: Verify ignition ON, engine OFF
+      - Try Tester Present variants: 3E 01, 3E 00, 3E
+      - Module does NOT support extended diagnostic session
+      - Module does NOT respond to VIN read
     repair_difficulty: "Difficult (requires brake bleeding)"
     test_results:
-      accessible: false
-      test_command: "03"
-      test_response: "7F 03 11"
-      notes: "Responds but service not supported (normal for ABS in this vehicle)"
+      accessible: true
+      test_date: "2026-03-05"
+      test_command: "3E 01"
+      test_response: "7E"
+      notes: "Module responding correctly. Tester Present (3E 01) works. Standard UDS services not supported (normal for Ford ABS)."
+    communication_confirmed:
+      date: "2026-03-05"
+      tester_present_working: "3E 01"
+      response: "7E"
+      services_supported:
+        - "0x3E (Tester Present)"
+        - "0x22 (Read Data By Identifier - limited DIDs)"
+      services_not_supported:
+        - "0x10 (Diagnostic Session Control)"
+        - "0x19 (Read DTC Information)"
+        - "0x22 with standard identification DIDs"
     uds_working_dids:
       - did: "0x0200"
         description: "Unknown ABS Parameter"
@@ -139,6 +175,7 @@ modules:
         formula: "TBD"
         tested: true
         working: true
+        confirmed_date: "2026-03-05"
       - did: "0x0202"
         description: "Unknown ABS Parameter"
         command: "22 0202"
@@ -146,6 +183,7 @@ modules:
         formula: "TBD"
         tested: true
         working: true
+        confirmed_date: "2026-03-05"
   
   BCM:
     full_name: "Body Control Module"
@@ -437,22 +475,33 @@ repair_procedures:
     time_estimate: "0.5-1 hour per sensor"
 
 related_vehicles:
+  - make: Mercury
+    model: Mariner
+    years: [2008, 2009, 2010, 2011]
+    notes: "Badge-engineered Escape, IDENTICAL systems and protocols"
+    compatibility: "100% - All procedures, addresses, and DIDs identical"
+  
+  - make: Mazda
+    model: Tribute
+    years: [2008, 2009, 2010, 2011]
+    notes: "Badge-engineered Escape, IDENTICAL systems and protocols"
+    compatibility: "100% - All procedures, addresses, and DIDs identical"
+    protocol_notes: |
+      Mazda Tribute 2008+ uses:
+      - ISO 15765-4 CAN (11-bit, 500 kbaud for powertrain)
+      - Same CAN bus architecture as Ford Escape
+      - Same module addresses (PCM: 0x7E0, ABS: 0x760, etc.)
+      - Same UDS implementation
+      - All Ford Escape diagnostic procedures apply
+  
   - make: Ford
     model: Fusion
     years: [2006, 2007, 2008, 2009]
     notes: "Similar HVAC system, procedures may apply"
+    compatibility: "Partial - Similar components, different addresses"
   
   - make: Ford
     model: Focus
     years: [2008, 2009, 2010]
     notes: "Different actuator location but similar diagnosis"
-  
-  - make: Mercury
-    model: Mariner
-    years: [2008, 2009, 2010, 2011]
-    notes: "Badge-engineered Escape, identical systems"
-  
-  - make: Mazda
-    model: Tribute
-    years: [2008, 2009, 2010, 2011]
-    notes: "Shares platform with Escape, very similar"
+    compatibility: "Partial - Similar diagnostic approach"

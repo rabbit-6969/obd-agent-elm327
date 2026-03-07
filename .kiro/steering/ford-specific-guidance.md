@@ -1,11 +1,21 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: '*Ford*|*Lincoln*|*Mercury*'
+fileMatchPattern: '*Ford*|*Lincoln*|*Mercury*|*Mazda*Tribute*'
 ---
 
-# Ford/Lincoln/Mercury Specific Diagnostic Guidance
+# Ford/Lincoln/Mercury/Mazda Tribute Specific Diagnostic Guidance
 
-This steering file is automatically included when working with Ford, Lincoln, or Mercury vehicles.
+This steering file is automatically included when working with Ford, Lincoln, Mercury, or Mazda Tribute vehicles.
+
+## Important: Mazda Tribute Platform Sharing
+
+The **Mazda Tribute** is badge-engineered from the Ford Escape and shares:
+- Identical platform and architecture
+- Same CAN bus communication protocols (ISO 15765-4 CAN)
+- Same module addresses and diagnostic protocols
+- Same UDS/OBD-II implementation
+
+**All Ford Escape diagnostic procedures apply to Mazda Tribute** (especially 2008+ models).
 
 ## Ford-Specific Behaviors
 
@@ -28,7 +38,7 @@ This steering file is automatically included when working with Ford, Lincoln, or
 - 0x7E0/0x7E8: Powertrain Control Module (PCM)
 - 0x7E1/0x7E9: Transmission Control Module (TCM)
 - 0x7A0/0x7A8: HVAC Module
-- 0x760/0x768: ABS Module
+- 0x760/0x768: ABS Module (CONFIRMED 2026-03-05)
 - 0x726/0x72E: Instrument Cluster
 - 0x737/0x73F: Body Control Module (BCM)
 
@@ -37,6 +47,63 @@ This steering file is automatically included when working with Ford, Lincoln, or
 - May have additional modules for commercial features
 
 **Note**: Always scan to confirm addresses for specific model/year.
+
+## ABS Module Diagnostics (Ford Escape 2008)
+
+### Confirmed Communication Protocol (2026-03-05)
+
+**Address**: 0x760 (request) / 0x768 (response)
+
+**Working Tester Present**: `3E 01`
+- Response: `7E` (positive response)
+- This confirms module is alive and communicating
+
+### Supported Services
+
+**Service 0x3E (Tester Present)**: SUPPORTED
+- Use variant: `3E 01`
+- Response: `7E`
+
+**Service 0x22 (Read Data By Identifier)**: PARTIALLY SUPPORTED
+- Working DIDs:
+  - 0x0200: Returns `62 02 00 00`
+  - 0x0202: Returns `62 02 02 00`
+- Standard identification DIDs NOT supported (F190, F181, F18C, F187, F191)
+  - Returns: `7F 22 31` (request out of range)
+
+### NOT Supported Services
+
+**Service 0x10 (Diagnostic Session Control)**: NOT SUPPORTED
+- Command: `10 03`
+- Response: `7F 10 12` (sub-function not supported)
+- Extended diagnostic session not available
+
+**Service 0x19 (Read DTC Information)**: NOT SUPPORTED
+- Command: `19 02 FF`
+- Response: `7F 19 11` (service not supported)
+- Standard DTC reading not available
+
+**Standard Identification DIDs**: NOT SUPPORTED
+- VIN (0xF190): `7F 22 31`
+- Calibration ID (0xF181): `7F 22 31`
+- Serial Number (0xF18C): `7F 22 31`
+- Part Number (0xF187): `7F 22 31`
+- Hardware Number (0xF191): `7F 22 31`
+
+### Important Notes
+
+**This is NORMAL behavior for Ford ABS modules**:
+- They use manufacturer-specific protocols
+- Standard UDS identification services are not implemented
+- DTC reading requires Ford-specific tools (FORScan, IDS, FDRS)
+- Limited DIDs available in 0x0200-0x02FF range
+
+**When diagnosing Ford ABS**:
+1. Use Tester Present (3E 01) to verify module presence
+2. Explore DIDs in 0x0200-0x02FF range for parameters
+3. Do NOT expect standard UDS services to work
+4. Negative responses (7F) are normal, not errors
+5. Use FORScan for DTC reading and advanced diagnostics
 
 ## Extended Diagnostic Session
 
@@ -155,9 +222,21 @@ Always confirm with user before clearing DTCs.
 ## Platform Sharing
 
 Ford shares platforms across brands:
-- **Ford Escape = Mazda Tribute = Mercury Mariner**
+- **Ford Escape = Mazda Tribute = Mercury Mariner** (2001-2012)
+  - Identical CAN bus architecture
+  - Same module addresses (PCM: 0x7E0, ABS: 0x760, etc.)
+  - Same diagnostic protocols (ISO 15765-4 CAN, UDS)
+  - Same DIDs and service support
+  - 2008+ models use CAN bus exclusively
 - **Ford Focus = Mazda 3** (some years)
 - **Lincoln models** often share with Ford (different trim)
+
+**When working with Mazda Tribute**:
+- Use Ford Escape procedures and scripts
+- Reference Ford Escape knowledge base
+- Module addresses are identical
+- DID ranges are identical
+- All documented Ford Escape findings apply
 
 Document findings across related models.
 

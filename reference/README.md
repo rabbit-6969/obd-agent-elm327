@@ -50,15 +50,39 @@ Store static reference material for:
 - `ISO_14229-1_Annex_E_IOControlParameters.md` - I/O control parameters
 - `ISO_14229-1_Annex_F_RoutineIdentifiers.md` - Routine IDs
 
-### Example CAN Databases
+### CAN Bus Documentation
 
-**Purpose**: Reference implementations from other vehicles
+**Purpose**: Reference implementations and reverse-engineered CAN data
 
 **Files**:
-- `mazda_skyactiv.kcd` - Example CAN database structure
+- `mazda_skyactiv.kcd` - Example CAN database structure (KCD format)
+- `Mazda_CAN_Bus_Reference.md` - Reverse-engineered Mazda CAN message structures (Ford CD2 platform)
+- `Valasek_Miller_Automotive_Networks_2014.md` - Seminal automotive security research
 - `generic_obd2.kcd` - Standard OBD-II PIDs
 
-**Usage**: Study structure and signal definitions for implementing new vehicles
+**Mazda CAN Bus Reference**:
+- HS-CAN (500 kbps) message structures for Ford Escape 2008 / Mazda Tribute
+- MS-CAN (125 kbps) message structures for Ford Escape 2008 / Mazda Tribute
+- Confirmed parameters: RPM, speed, wheel speeds, steering angle, transmission gear, etc.
+- Scaling factors and byte layouts
+- Source: Community reverse engineering efforts
+
+**Valasek & Miller Research (2014)**:
+- Comprehensive automotive security research by IOActive
+- Detailed analysis of 2010 Ford Escape and Toyota Prius
+- ISO 14229 (UDS) service documentation
+- SecurityAccess implementation analysis
+- ECU mapping and CAN ID documentation (Appendices A & B)
+- Firmware extraction and analysis techniques
+- **Use for**: Understanding protocols, ECU architecture, diagnostic procedures
+- **Do NOT use for**: Unauthorized modifications, security bypass, malicious activities
+
+**Usage**: 
+- Study structure and signal definitions for implementing new vehicles
+- Passive CAN monitoring for data logging
+- Custom dashboard integration
+- Performance analysis
+- Understanding automotive security for defensive purposes
 
 ## Structure
 
