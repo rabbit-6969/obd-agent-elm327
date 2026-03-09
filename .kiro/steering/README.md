@@ -35,6 +35,8 @@ Files with `inclusion: fileMatch` are included when specific files are in contex
   - Pattern: `*Ford*|*Lincoln*|*Mercury*|*Mazda*Tribute*`
 - `nissan-infiniti-specific-guidance.md` - Included when working with Nissan/Infiniti/Datsun vehicles
   - Pattern: `*Nissan*|*Infiniti*|*Datsun*`
+- `jeep-chrysler-specific-guidance.md` - Included when working with Jeep/Chrysler/Dodge/Ram/Fiat vehicles
+  - Pattern: `*Jeep*|*Chrysler*|*Dodge*|*Ram*|*Fiat*`
 
 ### Manual Inclusion (On-Demand)
 
@@ -49,6 +51,7 @@ Files with `inclusion: manual` are only included when explicitly referenced by t
 **`vehicle-diagnostics-core.md`**
 - Core principles (safety, learning, graceful degradation)
 - Knowledge base structure and search hierarchy
+- **ELM327 adapter limitations**: ATMA header bug and ATCRA workaround
 - Module discovery protocol (CAN scanning, Tester Present, VIN reading)
 - Manufacturer-specific behaviors overview
 - Safety classifications
@@ -94,6 +97,19 @@ Files with `inclusion: manual` are only included when explicitly referenced by t
 - Platform sharing (350Z, G35, FX35)
 - ELM327 configuration for each protocol
 
+**`jeep-chrysler-specific-guidance.md`**
+- Critical understanding: Most restrictive OBD-II implementation
+- Proprietary protocol architecture (CCD/SCI bus)
+- AlfaOBD requirement (essential, not optional)
+- Module-specific behaviors (PCM, TCM, Airbag, BCM, IPC)
+- VIN reading limitations (often unreliable)
+- CAN bus monitoring challenges
+- Extended diagnostic session and security access
+- Standard OBD-II limitations (~20% access)
+- Communication style (direct about limitations)
+- Documentation standards
+- Platform sharing (Jeep, Chrysler, Dodge, Ram, Fiat)
+
 ### Safety and Protocols
 
 **`safety-protocols.md`**
@@ -115,6 +131,8 @@ Files with `inclusion: manual` are only included when explicitly referenced by t
 - Manufacturer-specific troubleshooting
 - Common error responses and their meanings
 - Adapter-specific issues and workarounds
+- **ELM327 ATMA header bug**: ATH1 returns OK but headers not included in ATMA output
+- **ATCRA workaround**: Use targeted monitoring for affected adapters
 - Logging and documentation during troubleshooting
 - When to ask user for help
 - Success criteria
@@ -249,6 +267,23 @@ Potential additions:
 - Advanced diagnostic procedures
 - Repair procedure guidance
 - Parts identification assistance
+- Adapter compatibility matrix (which adapters work best for which tasks)
+
+## Known Issues and Workarounds
+
+### ELM327 ATMA Header Bug
+
+**Issue**: Many cheap ELM327 clones don't include CAN IDs in ATMA (Monitor All) output despite ATH1 returning OK.
+
+**Impact**: CAN bus exploration scripts capture data but can't parse CAN IDs.
+
+**Detection**: Run `scripts/debug/diagnose_can_monitoring.py` to test your adapter.
+
+**Workaround**: Use `scripts/debug/targeted_can_monitor.py` which uses ATCRA filtering.
+
+**Documentation**: See `reference/ELM327_ATMA_Header_Bug.md` for full details.
+
+**Recommendation**: For extensive CAN work, use quality adapters (Vgate iCar Pro, OBDLink).
 
 ## Contributing
 

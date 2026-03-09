@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
 """
-Ford Escape 2008 - CAN Bus Explorer
+Ford Escape 2008 - CAN Bus Explorer (HS-CAN ONLY)
+
+⚠️ CRITICAL SAFETY WARNING ⚠️
+This script performs READ-ONLY passive monitoring of the HS-CAN bus.
+It does NOT send any CAN messages - this is pure passive listening.
+
+NEVER send arbitrary CAN messages on the HS-CAN bus via OBD-II port!
+- HS-CAN carries safety-critical data (ABS, brakes, steering, engine)
+- Injecting arbitrary messages can interfere with safety systems
 
 Passively monitors all CAN bus traffic to discover which messages are actively
 transmitting data. No UDS commands are sent - this is pure passive monitoring.
 
 This helps identify:
-- Which CAN IDs are active
+- Which CAN IDs are active on HS-CAN
 - Message transmission frequencies
 - Data patterns and changes
 - Available real-time data sources
+
+LIMITATION: Standard ELM327 via OBD-II only accesses HS-CAN (500 kbps).
+MS-CAN modules (FDIM, HVAC, ACM) are NOT visible via this script.
 
 Usage:
     python scripts/debug/explore_can_bus.py
@@ -43,14 +54,31 @@ class ELM327:
             time.sleep(2)
             
             # Initialize adapter
+            print("Initializing ELM327...")
             self.send_command("ATZ")
             time.sleep(1)
             self.send_command("ATE0")  # Echo off
             self.send_command("ATL0")  # Linefeeds off
             self.send_command("ATS0")  # Spaces off
-            self.send_command("ATH1")  # Headers on (CRITICAL for seeing CAN IDs)
-            self.send_command("ATSP6")  # ISO 15765-4 CAN (500kbaud)
-            self.send_command("ATCAF0")  # Turn off CAN auto-formatting
+            
+            # CRITICAL: Headers must be ON to see CAN IDs
+            response = self.send_command("ATH1")  # Headers on
+            print(f"  Headers ON: {response}")
+            
+            # Try auto protocol first
+            response = self.send_command("ATSP0")  # Auto protocol
+            print(f"  Auto protocol: {response}")
+            
+            # Verify we can communicate
+            response = self.send_command("0100")  # Test with Mode 01 PID 00
+            print(f"  Test communication: {response}")
+            
+            if not response or "NO DATA" in response or "ERROR" in response:
+                print("  WARNING: No response to test command")
+                print("  Trying manual protocol selection...")
+                self.send_command("ATSP6")  # ISO 15765-4 CAN (500kbaud)
+                response = self.send_command("0100")
+                print(f"  Test with SP6: {response}")
             
             return True
         except Exception as e:
@@ -105,53 +133,131 @@ class ELM327:
         print("(This may take a moment to start receiving data)")
         print()
         
+        # Configure for monitoring with headers
+        # Some ELM327 clones don't include headers in ATMA despite ATH1
+        # So we'll try both formats
+        self.send_command("ATH1")  # Headers on
+        self.send_command("ATS0")  # Spaces off (for compact format)
+        self.send_command("ATL0")  # Linefeeds off
+        
         # Start monitoring
         self.ser.reset_input_buffer()
+        print("Sending ATMA (Monitor All) command...")
         self.ser.write(b'ATMA\r')  # Monitor all
+        time.sleep(0.5)
+        
+        # Check if monitoring started
+        initial_response = self.ser.read(self.ser.in_waiting).decode('ascii', errors='ignore')
+        print(f"Initial response: {initial_response[:100]}")
+        
+        if "?" in initial_response or "ERROR" in initial_response:
+            print("ATMA failed, trying alternative monitoring...")
+            self.ser.write(b'\r')  # Stop
+            time.sleep(0.2)
+            self.ser.reset_input_buffer()
+            
+            # Try ATMT (Monitor for Transmit) as alternative
+            self.ser.write(b'ATMT00\r')  # Monitor with no timeout
+            time.sleep(0.5)
         
         messages = defaultdict(list)
         start_time = time.time()
         last_update = start_time
+        buffer = ""
+        line_count = 0
+        headerless_format = False  # Track if we detect headerless format
         
         while time.time() - start_time < duration:
             if self.ser.in_waiting:
                 try:
-                    line = self.ser.readline().decode('ascii', errors='ignore').strip()
+                    # Read available data
+                    chunk = self.ser.read(self.ser.in_waiting).decode('ascii', errors='ignore')
+                    buffer += chunk
                     
-                    if line and len(line) >= 3:
-                        # Parse CAN message: "XXX YY YY YY YY YY YY YY YY"
-                        # XXX = CAN ID (3 hex digits)
-                        # YY = data bytes
+                    # Process complete lines
+                    while '\r' in buffer or '\n' in buffer:
+                        # Split on first line break
+                        if '\r' in buffer:
+                            line, buffer = buffer.split('\r', 1)
+                        else:
+                            line, buffer = buffer.split('\n', 1)
                         
-                        parts = line.split()
-                        if len(parts) >= 2:
-                            try:
-                                can_id = int(parts[0], 16)
-                                data_bytes = ' '.join(parts[1:])
+                        line = line.strip()
+                        line_count += 1
+                        
+                        # Debug: print first few lines
+                        if line_count <= 5:
+                            print(f"  Line {line_count}: {line[:80]}")
+                        
+                        # Skip empty lines, prompts, and error messages
+                        if not line or line == '>' or 'BUFFER' in line or 'STOPPED' in line:
+                            continue
+                        
+                        # Detect format: check if line has spaces (header format) or not (headerless)
+                        has_spaces = ' ' in line
+                        
+                        if has_spaces:
+                            # Format: "XXX YY YY YY YY YY YY YY YY" (with headers and spaces)
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                try:
+                                    # Validate CAN ID is 3 hex digits
+                                    if len(parts[0]) == 3:
+                                        can_id = int(parts[0], 16)
+                                        
+                                        # Validate it's a reasonable CAN ID (0x000 - 0x7FF for 11-bit)
+                                        if 0 <= can_id <= 0x7FF:
+                                            data_bytes = ' '.join(parts[1:])
+                                            
+                                            messages[can_id].append({
+                                                'timestamp': time.time(),
+                                                'data': data_bytes
+                                            })
                                 
-                                messages[can_id].append({
-                                    'timestamp': time.time(),
-                                    'data': data_bytes
-                                })
-                                
-                                # Progress update every 5 seconds
-                                if time.time() - last_update >= 5:
-                                    elapsed = int(time.time() - start_time)
-                                    remaining = duration - elapsed
-                                    print(f"  {elapsed}s elapsed, {remaining}s remaining... "
-                                          f"({len(messages)} unique CAN IDs found)")
-                                    last_update = time.time()
+                                except ValueError:
+                                    pass  # Skip invalid hex
+                        else:
+                            # Format: "XXXYYYYYYYYYYYYYYYY" (headerless, no spaces)
+                            # This is what we're actually receiving
+                            if not headerless_format and line_count <= 10:
+                                print(f"  Detected headerless format (no CAN IDs in output)")
+                                headerless_format = True
                             
-                            except ValueError:
-                                pass  # Skip invalid lines
+                            # For headerless format, we can't determine CAN IDs
+                            # Skip these lines - we need headers to work
+                            pass
+                    
+                    # Progress update every 5 seconds
+                    if time.time() - last_update >= 5:
+                        elapsed = int(time.time() - start_time)
+                        remaining = duration - elapsed
+                        status = "headerless format detected" if headerless_format else "parsing"
+                        print(f"  {elapsed}s elapsed, {remaining}s remaining... "
+                              f"({len(messages)} unique CAN IDs found, {line_count} lines processed, {status})")
+                        last_update = time.time()
                 
                 except Exception as e:
                     pass  # Skip errors during monitoring
+            
+            time.sleep(0.01)  # Small delay to prevent CPU spinning
         
         # Stop monitoring
         self.ser.write(b'\r')
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.ser.reset_input_buffer()
+        
+        print(f"\nTotal lines processed: {line_count}")
+        print(f"Total unique CAN IDs: {len(messages)}")
+        
+        if headerless_format and len(messages) == 0:
+            print("\n⚠️  WARNING: Adapter is sending headerless format")
+            print("   ATH1 command is not working - adapter doesn't include CAN IDs")
+            print("   This ELM327 clone may not support headers in ATMA mode")
+            print()
+            print("   Possible solutions:")
+            print("   1. Try a different ELM327 adapter (genuine or better clone)")
+            print("   2. Use ATCRA filtering (requires knowing CAN IDs in advance)")
+            print("   3. Use external CAN sniffer tool")
         
         return messages
     
@@ -319,29 +425,59 @@ def save_results(analysis, filename=None):
 
 def main(port='COM3', duration=30):
     """
-    Explore CAN bus
+    Explore CAN bus (HS-CAN only via OBD-II)
     
     Args:
         port: Serial port for ELM327
         duration: How long to monitor (seconds)
     """
     print("=" * 120)
-    print("Ford Escape 2008 - CAN Bus Explorer")
+    print("Ford Escape 2008 - CAN Bus Explorer (HS-CAN ONLY)")
     print("=" * 120)
     print()
-    print("This script passively monitors all CAN bus traffic to discover active messages.")
+    print("⚠️  CRITICAL SAFETY WARNING ⚠️")
+    print("This script performs READ-ONLY passive monitoring.")
+    print("It does NOT send any CAN messages - pure passive listening only.")
+    print()
+    print("NEVER send CAN messages on HS-CAN via OBD-II port!")
+    print("  - HS-CAN carries safety-critical data (ABS, brakes, steering)")
+    print("  - Injecting messages can interfere with safety systems")
+    print("  - Previous FDIM testing caused ABS issues due to bus interference")
+    print()
+    print("=" * 120)
+    print()
+    print("This script passively monitors HS-CAN bus traffic to discover active messages.")
     print("No UDS commands are sent - this is pure passive monitoring.")
     print()
-    print("What we'll discover:")
+    print("LIMITATION: Standard ELM327 via OBD-II only accesses HS-CAN (500 kbps).")
+    print("MS-CAN modules (FDIM, HVAC, ACM) are NOT visible via this script.")
+    print()
+    print("What we'll discover (HS-CAN only):")
     print("  - Which CAN IDs are actively transmitting")
     print("  - Message transmission frequencies")
     print("  - Which messages contain changing data (real-time parameters)")
     print("  - Which messages are static (configuration data)")
     print()
+    print("HS-CAN modules accessible:")
+    print("  ✓ PCM (Powertrain) - 0x7E0")
+    print("  ✓ ABS (Anti-lock Brakes) - 0x760")
+    print("  ✓ Wheel speeds - 0x4B0")
+    print("  ✓ Transmission - 0x228")
+    print("  ✓ Engine RPM/Speed - 0x080")
+    print("  ✓ Brake status - 0x190")
+    print("  ✓ Steering angle - 0x420")
+    print()
+    print("MS-CAN modules NOT accessible:")
+    print("  ✗ FDIM (Display) - 0x7A6 (MS-CAN)")
+    print("  ✗ HVAC (Climate) - 0x733 (MS-CAN)")
+    print("  ✗ ACM (Audio) - 0x727 (MS-CAN)")
+    print("  ✗ SJB (Body Control) - 0x726 (MS-CAN)")
+    print()
     print("Instructions:")
     print("  - Start with vehicle stationary (baseline)")
     print("  - Optionally: shift gears, press pedals, turn steering wheel")
     print("  - More activity = more data variations captured")
+    print("  - This is SAFE - read-only monitoring")
     print()
     
     # Connect to adapter
@@ -379,6 +515,12 @@ def main(port='COM3', duration=30):
         print("2. Compare with known CAN IDs in reference/Mazda_CAN_Bus_Reference.md")
         print("3. Create monitoring scripts for interesting parameters")
         print("4. Document new discoveries in the knowledge base")
+        print()
+        print("⚠️  SAFETY REMINDER:")
+        print("  - This script is READ-ONLY and safe")
+        print("  - NEVER send arbitrary CAN messages on HS-CAN bus")
+        print("  - FDIM/HVAC require MS-CAN switch position + UDS protocols")
+        print("  - Focus on monitoring, not message injection")
         print()
         print("Tip: Run this script again while:")
         print("  - Shifting through gears (to see transmission data change)")

@@ -216,14 +216,83 @@ FORScan uses:
 
 ---
 
+## CRITICAL SAFETY WARNING ⚠️
+
+**DO NOT send CAN messages on the HS-CAN bus via OBD-II port!**
+
+### What Happened During FDIM Testing
+
+When attempting to control FDIM (which is on MS-CAN) by sending messages via the OBD-II port (which connects to HS-CAN), the following occurred:
+
+1. **ABS light started flickering**
+2. **Warning sound and "check brake system" message appeared**
+3. **ABS module stopped responding to diagnostic queries**
+4. **CAN explorer failed to capture wheel speed data**
+5. **Transmission gear data disappeared from CAN bus**
+
+### Root Cause
+
+- FDIM is on **MS-CAN** (125 kbps)
+- OBD-II port connects to **HS-CAN** (500 kbps)
+- Sending MS-CAN formatted messages on HS-CAN interfered with safety-critical ABS communication
+- The two buses are separate - messages sent on HS-CAN cannot reach MS-CAN modules
+
+### Why This Is Dangerous
+
+**HS-CAN carries safety-critical data**:
+- ABS wheel speed sensors (0x4B0)
+- Brake status (0x190)
+- Transmission gear (0x228)
+- Engine control (PCM at 0x7E0)
+- Steering angle (0x420)
+
+**Injecting incorrect messages can**:
+- Interfere with ABS operation
+- Cause false warnings
+- Disrupt safety system communication
+- Potentially affect vehicle control systems
+
+### Recovery Procedure
+
+If you experience ABS issues after CAN bus testing:
+
+1. **Immediate**: Turn off ignition, wait 30 seconds
+2. **Clear fault**: Restart vehicle, check if ABS light clears
+3. **Test ABS**: Run `scripts/debug/test_ford_abs_connection.py`
+4. **Verify wheel speeds**: Run `scripts/debug/correlate_abs_wheel_speeds.py`
+5. **If issues persist**: Disconnect battery for 5 minutes to reset all modules
+
 ## Summary
 
 Your 2008 Ford Escape has:
-- **HS-CAN (500 kbps):** PCM, ABS, IPC - ✅ Accessible via standard OBD-II
-- **MS-CAN (125 kbps):** HVAC, BCM, Audio - ⚠️ Accessible with modified adapter + UDS protocol
+- **HS-CAN (500 kbps):** PCM, ABS, IPC - ✅ Accessible via standard OBD-II (READ-ONLY recommended)
+- **MS-CAN (125 kbps):** HVAC, BCM, Audio, FDIM - ⚠️ NOT accessible via standard OBD-II port
 
-The hardware switch on your adapter allows physical connection to both buses, and your adapter firmware supports Ford protocols. What we need is the **protocol knowledge** - the exact UDS commands to send. This is what FORScan knows, and what we can capture from its logs.
+### Safe Practices
 
-**For now:** Focus on HS-CAN modules (PCM) which work perfectly with standard OBD-II.  
-**Tomorrow:** Capture FORScan logs to learn the HVAC protocol commands.  
-**Future:** Implement UDS protocol in our agent so it can access HVAC directly.
+**✅ SAFE - Read-Only Operations**:
+- Monitor CAN bus traffic (passive listening)
+- Read diagnostic data from modules
+- Query DIDs for parameters
+- Read DTCs
+
+**⚠️ CAUTION - Write Operations**:
+- Clear DTCs (with user confirmation)
+- Reset learned values (with user confirmation)
+
+**❌ DANGEROUS - Never Do This**:
+- Send CAN messages on HS-CAN bus
+- Attempt to control FDIM via OBD-II port
+- Inject messages without understanding bus architecture
+- Test MS-CAN protocols on HS-CAN bus
+
+### For FDIM Control
+
+**Requirements**:
+- Direct connection to MS-CAN bus (pins 3 & 11)
+- Dual-CAN adapter (not standard ELM327)
+- Professional tools (FORScan with MS-CAN license)
+- **DO NOT attempt via standard OBD-II connection**
+
+**For now:** Focus on HS-CAN modules (PCM, ABS) with READ-ONLY operations.  
+**Future:** Use FORScan for MS-CAN access (HVAC, FDIM) - do not attempt DIY MS-CAN control.

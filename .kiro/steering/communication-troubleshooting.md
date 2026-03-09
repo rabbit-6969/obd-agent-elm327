@@ -208,12 +208,60 @@ Response doesn't match expected format.
 - Drop multi-frame responses
 - Limited protocol support
 - Slow response times
+- **ATMA header bug**: ATH1 returns OK but headers not included in ATMA output
 
-**Workarounds**:
+**ATMA Header Bug (Critical for CAN Monitoring)**:
+
+Many cheap ELM327 clones have a bug where:
+- ATH1 command returns "OK" (appears to work)
+- But ATMA (Monitor All) output doesn't include CAN IDs
+- Output format: `20026F4279027090000` (continuous hex, no CAN ID prefix)
+- Expected format: `080 4D C3 4E 00 01 C3 1F` (CAN ID + spaces + data)
+
+**Symptoms**:
+- ATMA receives data (hundreds/thousands of lines)
+- But all lines are unparseable (no 3-digit CAN ID prefix)
+- Zero CAN messages captured despite active bus traffic
+
+**Workaround - Use ATCRA Targeted Monitoring**:
+```python
+# CRITICAL: Must use ATS1 (spaces ON) for ATCRA to work!
+self.send_command("ATS1")  # Spaces ON (required!)
+self.send_command("ATH1")  # Headers ON
+
+# Instead of ATMA (Monitor All):
+self.send_command("ATCRA080")  # Set receive address filter
+self.send_command("ATMA")      # Monitor - now includes headers properly
+
+# Monitor multiple IDs sequentially:
+for can_id in [0x080, 0x228, 0x4B0]:
+    self.send_command(f"ATCRA{can_id:03X}")
+    self.send_command("ATMA")
+    # ... collect data ...
+    self.ser.write(b'\r')  # Stop monitoring
+    self.send_command("ATCRA")  # Clear filter
+```
+
+**Output with ATCRA + ATS1**:
+```
+080 4D C3 4E 00 01 C3 54 FF  ✓ Parseable!
+```
+
+**Detection**:
+- If ATMA processes many lines but captures zero CAN IDs
+- And lines don't have spaces (continuous hex string)
+- Adapter has the ATMA header bug
+
+**Solution**:
+1. Use targeted_can_monitor.py script (uses ATCRA)
+2. Or recommend quality adapter (Vgate iCar Pro, OBDLink)
+
+**General Workarounds**:
 1. Use single-frame commands when possible
 2. Add delays between commands
 3. Retry failed commands
-4. Recommend quality adapter
+4. Use ATCRA for CAN monitoring instead of ATMA
+5. Recommend quality adapter
 
 ### Quality Adapters
 

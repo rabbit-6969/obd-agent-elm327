@@ -1,5 +1,46 @@
 # Ford FDIM Display Control Reference
 
+## ⚠️ CRITICAL SAFETY WARNING ⚠️
+
+**DO NOT attempt FDIM control via standard OBD-II connection!**
+
+### Why FDIM Control via OBD-II is Dangerous
+
+**Ford Escape 2008 has TWO separate CAN buses**:
+- **HS-CAN (500 kbps)**: Safety-critical modules (ABS, PCM, brakes, steering) - accessible via OBD-II
+- **MS-CAN (125 kbps)**: Comfort modules (FDIM, HVAC, audio) - NOT accessible via standard OBD-II
+
+**The Problem**:
+- FDIM is on MS-CAN
+- OBD-II port connects to HS-CAN
+- Standard ELM327 CANNOT access MS-CAN
+- Attempting to send MS-CAN messages on HS-CAN interferes with safety systems
+
+**What Happened During Testing**:
+1. ABS light flickering
+2. Warning sounds and "check brake system" message
+3. ABS module communication failure
+4. Loss of wheel speed data
+5. Transmission gear data disappeared
+
+**Conclusion**: FDIM control requires direct MS-CAN access, which is NOT available via standard OBD-II port.
+
+### Requirements for FDIM Control
+
+**Hardware**:
+- Direct connection to MS-CAN bus (pins 3 & 11 on OBD-II connector)
+- Dual-CAN adapter (CANtact, PCAN-USB, or similar)
+- NOT possible with standard ELM327 via OBD-II
+
+**Software**:
+- Professional tools (FORScan with MS-CAN license)
+- Understanding of MS-CAN protocols
+- Ford-specific diagnostic procedures
+
+**For this project**: Focus on HS-CAN modules (PCM, ABS) with READ-ONLY operations. Use FORScan for MS-CAN access.
+
+---
+
 ## Overview
 
 The FDIM (Front Display Interface Module) in Ford vehicles acts as a "slave" device on the CAN bus. This allows external devices to write custom text to the factory display, enabling features like custom track names, diagnostic information display, or real-time vehicle parameter monitoring.

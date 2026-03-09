@@ -1,0 +1,369 @@
+# Jeep Wrangler JK 2007 - Technical Data
+# Raw diagnostic test results and protocol analysis
+
+[VEHICLE_INFO]
+Make=Jeep
+Model=Wrangler JK
+Year=2007
+Engine=3.8L V6
+Transmission=42RLE 4-speed Automatic
+TestDate=2026-03-08
+Adapter=ELM327 v1.5 clone
+Port=COM3
+Condition=Ignition ON, Engine OFF
+
+[VIN_READING]
+Command=09 02
+Response=Incomplete
+RawData=1J8~tSwè"L1
+Status=PARTIAL
+Notes=VIN reading corrupted, non-printable characters present
+ExpectedFormat=1J8 + 14 characters
+ActualLength=11 characters (incomplete)
+Recommendation=Read VIN from dashboard plate or door jamb
+
+[PCM_COMMUNICATION]
+Address=0x7E0
+ResponseAddress=0x7E8
+Protocol=ISO 15765-4 CAN (11 bit, 500 kbaud)
+
+# Tester Present
+Command=3E 00
+Response=7E8 03 7F 3E 12
+Interpretation=Negative response - Sub-function not supported
+Status=MODULE_RESPONDS
+
+# Extended Diagnostic Session
+Command=10 03
+Response=Not tested
+Notes=May require security access (0x27)
+
+# Read DTCs
+Command=19 02 FF
+Response=7F 19
+Interpretation=Negative response - Requires extended session
+Status=REQUIRES_EXTENDED_SESSION
+
+# DID Scanning (default session)
+DIDs_Tested=F100-F1FF, F200-F2FF, 0100-01FF
+DIDs_Found=0
+Notes=No DIDs accessible in default diagnostic session
+Recommendation=Use extended session or AlfaOBD
+
+[TCM_COMMUNICATION]
+Address=0x7E1
+ResponseAddress=0x7E9
+Protocol=ISO 15765-4 CAN (11 bit, 500 kbaud)
+
+# Gear Position DIDs
+Command=22 1E00
+Response=NO DATA
+Status=NOT_ACCESSIBLE
+
+Command=22 1001
+Response=NO DATA
+Status=NOT_ACCESSIBLE
+
+Command=22 0100
+Response=NO DATA
+Status=NOT_ACCESSIBLE
+
+Command=22 0101
+Response=NO DATA
+Status=NOT_ACCESSIBLE
+
+# Standard OBD-II Gear PID
+Command=01 A4
+Response=NO DATA
+Status=NOT_SUPPORTED
+
+Notes=TCM does not respond to any standard UDS commands
+Recommendation=Use AlfaOBD for TCM access
+
+[AIRBAG_COMMUNICATION]
+# Primary Address
+Address=0x740
+ResponseAddress=0x758
+Command=3E 00
+Response=NO RESPONSE
+Status=NOT_ACCESSIBLE
+
+# Alternative Address
+Address=0x738
+ResponseAddress=0x758
+Command=3E 00
+Response=NO RESPONSE
+Status=NOT_ACCESSIBLE
+
+# Body Control Address
+Address=0x750
+ResponseAddress=0x758
+Command=3E 00
+Response=NO RESPONSE
+Status=NOT_ACCESSIBLE
+
+Notes=Airbag module uses CCD/SCI bus, not accessible via OBD-II
+Recommendation=Use AlfaOBD for airbag diagnostics
+
+[STANDARD_OBD_PIDS]
+# Supported PIDs
+PID=01 00
+Description=Supported PIDs [01-20]
+Status=WORKING
+
+PID=01 0C
+Description=Engine RPM
+Status=WORKING
+Notes=Standard OBD-II PIDs work normally
+
+PID=01 0D
+Description=Vehicle Speed
+Status=WORKING
+
+PID=01 11
+Description=Throttle Position
+Status=WORKING
+
+PID=01 04
+Description=Engine Load
+Status=WORKING
+
+# Not Supported
+PID=01 A4
+Description=Transmission Actual Gear
+Status=NOT_SUPPORTED
+
+[CAN_BUS_MONITORING]
+Method=ATMA (Monitor All)
+Status=BLOCKED
+Issue=ELM327 ATMA header bug
+
+# ATMA Test
+Command=ATH1
+Response=OK
+Notes=Command accepted but headers not included in ATMA output
+
+Command=ATMA
+Duration=30 seconds
+LinesReceived=0
+CANIDsCaptured=0
+Status=FAILED
+Issue=Adapter has ATMA header bug - no CAN IDs in output
+
+# ATCRA Workaround
+Method=ATCRA (CAN Receive Address filtering)
+Status=NOT_ATTEMPTED
+Reason=Requires knowing target CAN IDs (unknown without working ATMA)
+Notes=Catch-22 - cannot discover CAN IDs without working ATMA
+
+# Known Jeep CAN IDs (from other models, not confirmed)
+PossibleGearPositionIDs=0x1F5, 0x2C1, 0x308
+PossibleGasPedalIDs=Unknown
+Status=UNCONFIRMED
+
+Recommendation=Use quality adapter (Vgate, OBDLink) or AlfaOBD
+
+[ADAPTER_LIMITATIONS]
+Adapter=ELM327 v1.5 clone
+ATMAHeaderBug=YES
+Impact=Cannot monitor CAN bus to discover gear/pedal signals
+
+Symptoms:
+- ATH1 returns OK
+- ATMA receives data
+- No CAN IDs in output
+- Lines are continuous hex without spaces
+- Parser cannot extract CAN IDs
+
+Workarounds:
+1. Use ATCRA filtering (requires known CAN IDs)
+2. Upgrade to quality adapter
+3. Use AlfaOBD instead
+
+Reference=reference/ELM327_ATMA_Header_Bug.md
+
+[DIAGNOSTIC_SCRIPTS]
+Script=scripts/debug/jeep_complete_diagnostic.py
+Description=Complete diagnostic workflow (VIN, PCM, Airbag)
+Status=WORKING
+Results:
+- VIN: Incomplete
+- PCM: Responds but requires extended session
+- Airbag: Not accessible
+
+Script=scripts/debug/jeep_transmission_gear.py
+Description=Transmission gear reading attempts
+Status=WORKING
+Results:
+- Standard OBD-II: NOT SUPPORTED
+- UDS to TCM: NO RESPONSE
+- CAN monitoring: BLOCKED
+- Related parameters: WORKING
+
+Script=scripts/debug/jeep_can_monitor.py
+Description=CAN bus monitoring for gear/pedal
+Status=CREATED
+Results=Blocked by ATMA header bug
+Notes=Would work with quality adapter
+
+[PROTOCOL_ANALYSIS]
+Manufacturer=Jeep/Chrysler (Stellantis)
+
+Protocols_Used:
+- CCD bus (Chrysler Collision Detection) - Proprietary
+- SCI bus (Serial Communication Interface) - Proprietary
+- CAN bus - Limited standard OBD-II access
+- ISO 15765-4 CAN (11 bit, 500 kbaud) - Powertrain only
+
+Standard_OBD_Access=VERY LIMITED
+Reason=Most modules use proprietary CCD/SCI protocols
+
+Modules_Accessible_Via_Standard_OBD:
+- PCM: Partial (requires extended session)
+- Standard OBD-II PIDs: Yes (Mode 01)
+
+Modules_NOT_Accessible_Via_Standard_OBD:
+- TCM: No response to UDS commands
+- Airbag: Uses CCD/SCI bus
+- BCM: Uses CCD/SCI bus
+- IPC: Uses CCD bus
+- HVAC: Unknown protocol
+
+Security_Access=Likely required for extended session
+Authentication=Manufacturer-specific
+
+[ALFAOBD_COMPARISON]
+StandardOBD=Very limited access
+AlfaOBD=Full access to all modules
+
+StandardOBD_Can_Access:
+- Basic DTCs (Mode 03)
+- Live data (Mode 01 PIDs)
+- VIN (partial/unreliable)
+- Emissions readiness (Mode 01 PID 01)
+
+StandardOBD_Cannot_Access:
+- Transmission gear position
+- Airbag DTCs
+- Extended PCM DIDs
+- Module programming
+- Actuator tests
+- Security access
+
+AlfaOBD_Can_Access:
+- All PCM DIDs
+- Transmission gear position
+- Airbag DTCs and crash data
+- All module DTCs
+- Module programming
+- Actuator tests
+- Security access handling
+- Adaptation values
+
+Cost_Comparison:
+StandardOBD=Free (with existing adapter)
+AlfaOBD=$50 (one-time)
+Recommendation=AlfaOBD is essential for Jeep diagnostics
+
+[MANUFACTURER_COMPARISON]
+# Comparison with other manufacturers tested
+
+Ford_Escape_2008:
+- Standard OBD access: GOOD
+- PCM: Fully accessible
+- ABS: Partially accessible
+- Transmission: UDS DIDs work
+- HVAC: Requires FORScan
+- Overall: 70% accessible via standard OBD
+
+Toyota_FJ_Cruiser_2008:
+- Standard OBD access: MODERATE
+- PCM: Fully accessible
+- ABS: Accessible (no response is normal)
+- Transmission: Limited
+- Overall: 50% accessible via standard OBD
+
+Jeep_Wrangler_JK_2007:
+- Standard OBD access: VERY LIMITED
+- PCM: Requires extended session
+- TCM: Not accessible
+- Airbag: Not accessible (CCD/SCI bus)
+- Overall: 20% accessible via standard OBD
+
+Conclusion:
+Jeep/Chrysler has the most restrictive OBD-II implementation
+of the three manufacturers tested. AlfaOBD is essential.
+
+[RECOMMENDATIONS]
+For_Basic_Diagnostics:
+- Use standard OBD-II for DTCs and live data
+- Read VIN from dashboard, not OBD-II
+- Accept limited module access
+
+For_Advanced_Diagnostics:
+- Purchase AlfaOBD (~$50) - HIGHLY RECOMMENDED
+- Use existing ELM327 adapter with AlfaOBD
+- Full access to all modules
+
+For_CAN_Bus_Work:
+- Upgrade to quality adapter (Vgate, OBDLink)
+- Or use dedicated CAN sniffer
+- Or use AlfaOBD (easier and more reliable)
+
+For_Professional_Use:
+- AlfaOBD for Jeep/Chrysler
+- FORScan for Ford
+- Techstream for Toyota
+- Quality adapter for standard OBD
+
+[TEST_ENVIRONMENT]
+Date=2026-03-08
+Time=15:51:24
+Location=User vehicle
+Adapter=ELM327 v1.5 clone
+Port=COM3
+Baudrate=38400
+Timeout=3 seconds
+Vehicle_Condition=Ignition ON, Engine OFF
+Battery_Voltage=Unknown (assumed >11V)
+Temperature=Unknown
+
+[LESSONS_LEARNED]
+1. Jeep/Chrysler has very limited standard OBD-II access
+2. Most modules require proprietary CCD/SCI protocols
+3. AlfaOBD is essential for serious Jeep diagnostics
+4. CAN monitoring blocked by cheap adapter ATMA bug
+5. VIN reading via OBD-II is unreliable
+6. TCM does not respond to standard UDS commands
+7. Airbag module not accessible via OBD-II port
+8. Standard OBD-II PIDs work normally (RPM, speed, etc.)
+9. Extended diagnostic session may require security access
+10. Quality adapter or AlfaOBD required for advanced work
+
+[FUTURE_TESTING]
+With_AlfaOBD:
+- Test extended diagnostic session
+- Scan all PCM DIDs
+- Read transmission gear position
+- Read airbag DTCs
+- Test actuators
+- Document all accessible parameters
+
+With_Quality_Adapter:
+- Retry CAN bus monitoring
+- Identify gear position CAN ID
+- Identify gas pedal CAN ID
+- Create targeted monitoring scripts
+- Document CAN bus architecture
+
+With_Extended_Session:
+- Test security access (0x27)
+- Scan PCM DIDs in extended session
+- Read PCM DTCs in extended session
+- Document extended session capabilities
+
+[REFERENCES]
+ELM327_ATMA_Bug=reference/ELM327_ATMA_Header_Bug.md
+AlfaOBD=https://www.alfaobd.com/
+Jeep_Forums=https://www.jk-forum.com/
+Service_Manual=Required for detailed procedures

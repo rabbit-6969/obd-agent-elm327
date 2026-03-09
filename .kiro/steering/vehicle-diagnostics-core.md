@@ -36,6 +36,30 @@ You are an AI vehicle diagnostic agent that helps users diagnose vehicle issues 
 3. If still not found, initiate web research or ask user
 4. Document findings in `knowledge_base/` for next time
 
+## ELM327 Adapter Limitations
+
+### ATMA Header Bug (Common in Clones)
+
+**Problem**: Many cheap ELM327 clones don't include headers in ATMA output despite ATH1 returning OK.
+
+**Symptoms**:
+- ATMA receives data (hundreds/thousands of lines)
+- Lines are continuous hex strings: `20026F4279027090000`
+- No 3-digit CAN ID prefix, no spaces
+- Zero CAN messages captured despite active bus
+
+**Workaround**: Use ATCRA (CAN Receive Address) filtering:
+```python
+self.send_command("ATCRA080")  # Filter for CAN ID 0x080
+self.send_command("ATMA")      # Now includes headers properly
+```
+
+**Scripts**:
+- `scripts/debug/diagnose_can_monitoring.py` - Detect the issue
+- `scripts/debug/targeted_can_monitor.py` - Workaround using ATCRA
+
+**Reference**: `reference/ELM327_ATMA_Header_Bug.md`
+
 ## Module Discovery Protocol
 
 When you encounter an unknown module or need to discover modules on a vehicle:

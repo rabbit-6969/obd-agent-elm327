@@ -1,0 +1,59 @@
+{
+  "scan_date": "2026-03-07T16:23:41.275746",
+  "vehicle": "Ford Escape 2008",
+  "method": "ATCRA targeted monitoring",
+  "total_can_ids": 3,
+  "messages": {
+    "0x080": {
+      "can_id_decimal": 128,
+      "description": "Engine RPM & Vehicle Speed",
+      "count": 143,
+      "frequency_hz": 117.23,
+      "data_changes": true,
+      "unique_values": 143,
+      "first_data": "4D C3 4E 00 01 C3 BA FF <DATA ERROR",
+      "last_data": "4D C3 4E 00 01 C3 6B FF <DATA ERROR",
+      "sample_data": [
+        "4D C3 4E 00 01 C3 FF FF <DATA ERROR",
+        "4D C3 4E 00 01 C3 BC FF <DATA ERROR",
+        "4D C3 4E 00 01 C3 19 FF <DATA ERROR",
+        "4D C3 4E 00 01 C3 1F FF <DATA ERROR",
+        "4D C3 4E 00 01 C3 1B FF <DATA ERROR"
+      ]
+    },
+    "0x201": {
+      "can_id_decimal": 513,
+      "description": "Accelerator Pedal",
+      "count": 329,
+      "frequency_hz": 65.82,
+      "data_changes": true,
+      "unique_values": 69,
+      "first_data": "0B 95 00 00 27 10 00 00 <DATA ERROR",
+      "last_data": "0C 13 00 00 27 10 00 00 <DATA ERROR",
+      "sample_data": [
+        "0B 94 00 00 27 10 00 00 <DATA ERROR",
+        "0B 9F 00 00 27 10 00 00 <DATA ERROR",
+        "0B C9 00 00 27 10 00 00 <DATA ERROR",
+        "0B 97 00 00 27 10 00 00 <DATA ERROR",
+        "0B D0 00 00 27 10 00 00 <DATA ERROR"
+      ]
+    },
+    "0x420": {
+      "can_id_decimal": 1056,
+      "description": "Steering Wheel Angle",
+      "count": 54,
+      "frequency_hz": 10.99,
+      "data_changes": true,
+      "unique_values": 19,
+      "first_data": "80 35 95 00 00 00 01 00 <DATA ERROR",
+      "last_data": "80 35 A6 00 00 00 03 00 <DATA ERROR",
+      "sample_data": [
+        "80 35 9B 00 00 00 01 00 <DATA ERROR",
+        "80 35 96 00 00 00 01 00 <DATA ERROR",
+        "80 35 9C 00 00 00 01 00 <DATA ERROR",
+        "80 35 97 00 00 00 01 00 <DATA ERROR",
+        "80 35 A3 00 00 00 01 00 <DATA ERROR"
+      ]
+    }
+  }
+}
