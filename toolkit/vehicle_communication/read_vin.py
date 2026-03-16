@@ -20,6 +20,7 @@ import sys
 import logging
 from typing import Optional
 from elm327_base import ELM327Base, ELM327Error
+from adapter_checker import check_adapter_from_elm327base
 
 
 # Suppress logging to stdout (only JSON output)
@@ -112,42 +113,45 @@ def validate_vin(vin: str) -> bool:
 
 def read_vin(port: str) -> dict:
     """
-    Read VIN from vehicle
-    
+    Read VIN from vehicle and check adapter quality in the same session.
+
     Args:
         port: Serial port for ELM327 adapter
-        
+
     Returns:
-        JSON-serializable dict with success status and VIN or error
+        JSON-serializable dict with success status, VIN, and adapter check result
     """
     try:
         with ELM327Base(port) as adapter:
-            # Request VIN using OBD-II service 09, PID 02
-            # Command format: 0902 (service 09, PID 02)
+            # ── Adapter quality check (run every session) ──────────────────
+            adapter_result = check_adapter_from_elm327base(adapter)
+
+            # ── VIN reading ────────────────────────────────────────────────
             response = adapter.send_obd_command("0902")
-            
+            vin = None
             if response:
                 vin = parse_vin_response(response)
-                if vin:
-                    return {
-                        "success": True,
-                        "vin": vin
-                    }
-            
+
             return {
-                "success": False,
-                "error": "Failed to read VIN from vehicle"
+                "success": vin is not None,
+                "vin": vin,
+                "error": None if vin else "Failed to read VIN from vehicle",
+                "adapter": adapter_result.to_dict(),
             }
-            
+
     except ELM327Error as e:
         return {
             "success": False,
-            "error": f"ELM327 error: {str(e)}"
+            "vin": None,
+            "error": f"ELM327 error: {str(e)}",
+            "adapter": None,
         }
     except Exception as e:
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}"
+            "vin": None,
+            "error": f"Unexpected error: {str(e)}",
+            "adapter": None,
         }
 
 
@@ -161,14 +165,22 @@ def main():
         required=True,
         help="Serial port for ELM327 adapter (e.g., COM3, /dev/ttyUSB0)"
     )
-    
+
     args = parser.parse_args()
-    
-    # Read VIN and output JSON
+
     result = read_vin(args.port)
+
+    # Print adapter check summary to stderr so JSON stdout stays clean
+    if result.get("adapter"):
+        from adapter_checker import AdapterCheckResult
+        ar = AdapterCheckResult(**{
+            k: v for k, v in result["adapter"].items()
+            if k not in ("is_clone",)
+        })
+        import sys as _sys
+        print(ar.user_message(), file=_sys.stderr)
+
     print(json.dumps(result, indent=2))
-    
-    # Exit with appropriate code
     sys.exit(0 if result["success"] else 1)
 
 

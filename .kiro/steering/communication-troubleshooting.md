@@ -125,7 +125,83 @@ Some modules may be on secondary bus:
 3. Would require direct connection to that bus
 4. Document this limitation
 
-## Common Error Responses
+## Adapter Quality Check — Run Every Session
+
+**MANDATORY**: At the start of every diagnostic session (alongside VIN reading), run the adapter authenticity check. This determines what the adapter can and cannot do, and sets correct expectations before any diagnostics begin.
+
+### Why Every Session
+
+- The user may have swapped adapters between sessions
+- Clone adapters cause silent failures that look like vehicle problems
+- Knowing adapter quality upfront prevents wasted troubleshooting time
+
+### How to Run
+
+The shared module is at `toolkit/vehicle_communication/adapter_checker.py`.
+
+```python
+from toolkit.vehicle_communication.adapter_checker import check_adapter
+
+result = check_adapter(ser)   # ser = open serial.Serial connection
+print(result.user_message())  # show to user
+```
+
+Or from scripts that use the inline ELM327 class:
+
+```python
+import sys, os
+sys.path.insert(0, 'toolkit/vehicle_communication')
+from adapter_checker import check_adapter
+
+adapter_result = check_adapter(elm.ser)
+print(adapter_result.user_message())
+```
+
+### Tests Performed (in order of reliability)
+
+| Test | Command | Pass | Fail = Clone |
+|------|---------|------|--------------|
+| Allow long messages | `AT AL` | `OK` | `?` or empty — **definitive** |
+| Firmware version | `AT I` | v1.0–v2.0 | v1.5 / v2.1 / garbage |
+| Device description | `AT @1` | any string | `?` or empty |
+| Protocol parameter | `AT PP 2F ON` | `OK` | `?` or hang |
+| CAN receive address | `AT CRA 7E8` | `OK` | `?` or fail |
+| Set CAN header | `AT SH 7E0` | `OK` | `?` or fail |
+
+**Single most reliable test**: `AT AL` — if it returns anything other than `OK`, it's a clone.
+
+### Verdicts
+
+- **GENUINE** — all key tests pass, full functionality expected
+- **LIMITED** — clone confirmed, reduced functionality
+- **UNKNOWN** — inconclusive, proceed with caution
+
+### Known Limitations of Clone Adapters
+
+When verdict is LIMITED, warn the user about:
+- CAN bus monitoring (ATMA) may not include headers → use ATCRA workaround
+- Multi-ECU access (ABS/SRS/TCM) may fail or time out
+- Freeze-frame and Mode 6 data may be unavailable
+- Older ISO/KWP2000 vehicles may not connect at all
+- Streaming many PIDs simultaneously may cause disconnects or corrupted values
+
+### Recommended Upgrades (when clone detected)
+
+- Vgate iCar Pro (~$25, Bluetooth/WiFi)
+- OBDLink LX (~$80, Bluetooth)
+- OBDLink MX+ (~$100, Bluetooth)
+
+### Clone Firmware Version Strings (always a clone)
+
+`v1.5`, `v2.1`, `v2.2`, `v3.0` — these version numbers were never released by ELM Electronics.
+
+### Genuine Firmware Versions
+
+`v1.0`, `v1.1`, `v1.2`, `v1.3`, `v1.3a`, `v1.4`, `v1.4b`, `v2.0`
+
+---
+
+
 
 ### Negative Response (7F)
 
@@ -210,20 +286,31 @@ Response doesn't match expected format.
 - Slow response times
 - **ATMA header bug**: ATH1 returns OK but headers not included in ATMA output
 
-**ATMA Header Bug (Critical for CAN Monitoring)**:
+**ATMA Header Bug (Limited/Clone Adapters Only)**:
 
-Many cheap ELM327 clones have a bug where:
+This bug only affects adapters with verdict `LIMITED` from the session adapter quality check.
+**If the adapter check returned `GENUINE`, use ATMA directly — no workaround needed.**
+
+Clone adapters have a bug where:
 - ATH1 command returns "OK" (appears to work)
 - But ATMA (Monitor All) output doesn't include CAN IDs
 - Output format: `20026F4279027090000` (continuous hex, no CAN ID prefix)
 - Expected format: `080 4D C3 4E 00 01 C3 1F` (CAN ID + spaces + data)
 
-**Symptoms**:
+**Symptoms** (clone only):
 - ATMA receives data (hundreds/thousands of lines)
 - But all lines are unparseable (no 3-digit CAN ID prefix)
 - Zero CAN messages captured despite active bus traffic
 
-**Workaround - Use ATCRA Targeted Monitoring**:
+**Decision logic — always check adapter verdict first**:
+
+| Adapter verdict | CAN monitoring approach |
+|-----------------|------------------------|
+| `GENUINE` | Use ATMA directly, headers work |
+| `LIMITED` | Skip ATMA, use ATCRA workaround |
+| `UNKNOWN` | Try ATMA; if zero CAN IDs captured, fall back to ATCRA |
+
+**ATCRA Workaround** (LIMITED / UNKNOWN only):
 ```python
 # CRITICAL: Must use ATS1 (spaces ON) for ATCRA to work!
 self.send_command("ATS1")  # Spaces ON (required!)
@@ -247,14 +334,10 @@ for can_id in [0x080, 0x228, 0x4B0]:
 080 4D C3 4E 00 01 C3 54 FF  ✓ Parseable!
 ```
 
-**Detection**:
+**Detection** (for UNKNOWN adapters):
 - If ATMA processes many lines but captures zero CAN IDs
 - And lines don't have spaces (continuous hex string)
-- Adapter has the ATMA header bug
-
-**Solution**:
-1. Use targeted_can_monitor.py script (uses ATCRA)
-2. Or recommend quality adapter (Vgate iCar Pro, OBDLink)
+- → Treat as LIMITED, switch to ATCRA workaround
 
 **General Workarounds**:
 1. Use single-frame commands when possible

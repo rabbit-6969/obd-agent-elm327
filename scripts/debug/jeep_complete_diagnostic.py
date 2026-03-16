@@ -18,6 +18,16 @@ import time
 import sys
 from datetime import datetime
 
+# Allow running from repo root or scripts/debug directly
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'toolkit', 'vehicle_communication'))
+
+try:
+    from adapter_checker import check_adapter, AdapterCheckResult
+    _CHECKER_AVAILABLE = True
+except ImportError:
+    _CHECKER_AVAILABLE = False
+
 class ELM327:
     """ELM327 adapter interface"""
     
@@ -478,7 +488,17 @@ def main(port='COM4'):
     
     print("✓ Connected to ELM327")
     print()
-    
+
+    # ── Adapter quality check (every session) ──────────────────────────────
+    if _CHECKER_AVAILABLE:
+        print("Checking adapter quality...")
+        adapter_result = check_adapter(elm.ser)
+        print(adapter_result.user_message())
+        print()
+    else:
+        print("⚠ Adapter checker not available (toolkit not in path)")
+        print()
+
     # Step 1: Read VIN
     vin = read_vin(elm)
     

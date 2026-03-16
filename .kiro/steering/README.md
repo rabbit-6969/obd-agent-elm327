@@ -271,6 +271,20 @@ Potential additions:
 
 ## Known Issues and Workarounds
 
+### ELM327 Clone Detection (Session Startup)
+
+**Requirement**: Every diagnostic session must run the adapter quality check alongside VIN reading.
+
+**Module**: `toolkit/vehicle_communication/adapter_checker.py`
+
+**How it works**: Sends 6 AT commands that only genuine ELM327 chips handle correctly. The single most reliable test is `AT AL` — clones return `?` instead of `OK`.
+
+**Verdicts**: GENUINE / LIMITED (clone) / UNKNOWN
+
+**Integration**: `toolkit/vehicle_communication/read_vin.py` runs the check automatically. All new diagnostic scripts should import and call `check_adapter()` at session start.
+
+**Reference**: `communication-troubleshooting.md` → "Adapter Quality Check — Run Every Session"
+
 ### ELM327 ATMA Header Bug
 
 **Issue**: Many cheap ELM327 clones don't include CAN IDs in ATMA (Monitor All) output despite ATH1 returning OK.

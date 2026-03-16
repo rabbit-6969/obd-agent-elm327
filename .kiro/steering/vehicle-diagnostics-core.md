@@ -36,27 +36,78 @@ You are an AI vehicle diagnostic agent that helps users diagnose vehicle issues 
 3. If still not found, initiate web research or ask user
 4. Document findings in `knowledge_base/` for next time
 
+## Session Startup Checklist
+
+**Every diagnostic session must begin with these two steps, in order:**
+
+### Step 1: Adapter Quality Check
+
+Before any vehicle communication, run the adapter authenticity check:
+
+```python
+from toolkit.vehicle_communication.adapter_checker import check_adapter
+result = check_adapter(ser)
+print(result.user_message())
+```
+
+- If verdict is **LIMITED** (clone): warn the user, note which features may fail
+- If verdict is **GENUINE**: proceed normally
+- Always show the result to the user — they need to know what their adapter can do
+
+See `communication-troubleshooting.md` → "Adapter Quality Check" for full details.
+
+### Step 2: VIN Reading
+
+Read VIN via Mode 09 PID 02. The `toolkit/vehicle_communication/read_vin.py` script runs both steps automatically.
+
+---
+
 ## ELM327 Adapter Limitations
 
-### ATMA Header Bug (Common in Clones)
+### ATMA Header Bug (Limited/Clone Adapters Only)
 
-**Problem**: Many cheap ELM327 clones don't include headers in ATMA output despite ATH1 returning OK.
+**This bug only affects adapters with verdict `LIMITED` from the adapter quality check.**
+If the session adapter check returned `GENUINE`, use ATMA directly — no workaround needed.
 
-**Symptoms**:
+**Problem**: Many cheap ELM327 clones don't include CAN IDs in ATMA output despite ATH1 returning OK.
+
+**Symptoms** (clone only):
 - ATMA receives data (hundreds/thousands of lines)
 - Lines are continuous hex strings: `20026F4279027090000`
 - No 3-digit CAN ID prefix, no spaces
 - Zero CAN messages captured despite active bus
 
-**Workaround**: Use ATCRA (CAN Receive Address) filtering:
+**Decision logic for CAN monitoring**:
+```
+adapter_result = check_adapter(ser)
+
+if adapter_result.is_genuine:
+    # Use ATMA directly — headers work correctly
+    ser.write(b'ATMA\r')
+
+elif adapter_result.is_clone:
+    # ATMA headers broken — use ATCRA targeted monitoring instead
+    ser.write(f'ATCRA{can_id:03X}\r'.encode())
+    ser.write(b'ATMA\r')
+
+else:  # UNKNOWN
+    # Try ATMA first; if zero CAN IDs captured, fall back to ATCRA
+    ...
+```
+
+**ATCRA workaround** (clone / UNKNOWN only):
 ```python
-self.send_command("ATCRA080")  # Filter for CAN ID 0x080
-self.send_command("ATMA")      # Now includes headers properly
+self.send_command("ATS1")          # Spaces ON — required for ATCRA
+self.send_command("ATCRA080")      # Filter for CAN ID 0x080
+self.send_command("ATMA")          # Now includes headers properly
+# ... collect data ...
+self.ser.write(b'\r')              # Stop
+self.send_command("ATCRA")         # Clear filter
 ```
 
 **Scripts**:
-- `scripts/debug/diagnose_can_monitoring.py` - Detect the issue
-- `scripts/debug/targeted_can_monitor.py` - Workaround using ATCRA
+- `scripts/debug/diagnose_can_monitoring.py` - Confirm the bug on an UNKNOWN adapter
+- `scripts/debug/targeted_can_monitor.py` - ATCRA-based workaround
 
 **Reference**: `reference/ELM327_ATMA_Header_Bug.md`
 
