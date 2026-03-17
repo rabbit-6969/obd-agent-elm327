@@ -3,12 +3,23 @@ ELM327 Base Communication Module
 
 Core functionality for ELM327 OBD-II adapter communication.
 Extracted and refactored from legacy elm327_diagnostic module.
+
+High-level helpers (read_vin, read_dtcs, read_readiness) delegate to
+toolkit/vehicle_communication/obd2_helpers.py — import that module for
+standalone use in diagnostic scripts.
 """
 
+import os
+import sys
 import serial
 import time
 from typing import Optional
 import logging
+
+# Make obd2_helpers importable when elm327_base is used directly
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
 logger = logging.getLogger(__name__)
 
@@ -238,6 +249,47 @@ class ELM327Base:
         except Exception:
             return False
     
+    def read_vin(self) -> Optional[str]:
+        """
+        Read VIN from vehicle (Mode 09 PID 02).
+
+        Handles multi-frame ISO-TP responses correctly by stripping CAN
+        framing before parsing. Falls back to regex scan if framing parse fails.
+
+        Returns:
+            17-character VIN string, or None if unavailable.
+        """
+        from obd2_helpers import read_vin as _read_vin
+        return _read_vin(self.send_command)
+
+    def read_dtcs(self, mode: int = 3) -> list:
+        """
+        Read stored (mode=3) or pending (mode=7) DTCs.
+
+        Returns:
+            List of DTC strings e.g. ['P0158', 'P0420'], empty list if none.
+        """
+        from obd2_helpers import parse_dtcs
+        cmd = f"0{mode}"
+        response = self.send_obd_command(cmd)
+        if not response:
+            return []
+        return parse_dtcs(response, mode)
+
+    def read_readiness(self) -> Optional[dict]:
+        """
+        Read emission readiness monitors (Mode 01 PID 01).
+
+        Returns:
+            Dict with mil_on, dtc_count, is_spark, monitors list,
+            incomplete_count, complete_count — or None on failure.
+        """
+        from obd2_helpers import parse_readiness
+        response = self.send_obd_command("0101")
+        if not response:
+            return None
+        return parse_readiness(response)
+
     def __enter__(self):
         """Context manager entry"""
         self.connect()

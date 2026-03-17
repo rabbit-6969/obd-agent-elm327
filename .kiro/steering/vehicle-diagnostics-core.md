@@ -58,7 +58,70 @@ See `communication-troubleshooting.md` → "Adapter Quality Check" for full deta
 
 ### Step 2: VIN Reading
 
-Read VIN via Mode 09 PID 02. The `toolkit/vehicle_communication/read_vin.py` script runs both steps automatically.
+Read VIN via Mode 09 PID 02. Always use `obd2_helpers.read_vin()` — it handles multi-frame ISO-TP responses correctly.
+
+```python
+from obd2_helpers import read_vin
+vin = read_vin(elm.cmd)   # elm.cmd is your send_command callable
+```
+
+The `toolkit/vehicle_communication/read_vin.py` script runs both steps automatically.
+
+---
+
+## Shared OBD-II Parsing Utilities
+
+All new diagnostic scripts **must** import from `toolkit/vehicle_communication/obd2_helpers.py` instead of reimplementing parsing inline.
+
+```python
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../toolkit/vehicle_communication'))
+from obd2_helpers import read_vin, parse_dtcs, parse_readiness, extract_payload_hex
+```
+
+### Available functions
+
+| Function | Purpose |
+|----------|---------|
+| `extract_payload_hex(response)` | Strip ISO-TP CAN framing from ATH1 multi-frame response |
+| `read_vin(elm_cmd_fn)` | Read + parse VIN (Mode 09 PID 02), multi-frame safe |
+| `parse_dtcs(response, mode)` | Decode Mode 03 (stored) or Mode 07 (pending) DTCs |
+| `decode_dtc_bytes(high, low)` | Decode two raw bytes → DTC string (e.g. P0158) |
+| `parse_readiness(response)` | Decode Mode 01 PID 01 emission readiness monitors |
+
+### Why this matters — VIN multi-frame parsing
+
+ELM327 with ATH1 returns VIN as a multi-frame ISO-TP response:
+```
+7E8 10 14 49 02 01 31 4A   <- first frame (frame-type 1x, length 0x14)
+7E8 21 38 47 41 35 39 31   <- consecutive frame 1 (sequence 0x21)
+7E8 22 31 37 4C 31 34 31   <- consecutive frame 2 (sequence 0x22)
+```
+
+Naively stripping spaces and searching for `4902` will include CAN IDs and
+frame-type bytes in the "VIN hex", producing garbage characters.
+`extract_payload_hex()` correctly skips CAN IDs and ISO-TP sequence bytes
+before the `4902` marker is located.
+
+**Always send `ATCAF0` before `0902` and `ATCAF1` after** so raw frames are
+returned and the stripping logic works:
+```python
+elm.cmd("ATCAF0")
+response = elm.cmd("0902", timeout=5)
+elm.cmd("ATCAF1")
+vin = parse_vin_from_payload(extract_payload_hex(response))
+```
+
+### DTC parsing — anchor to service response byte
+
+Mode 03 response: `7E8 06 43 01 58 00 00 00`
+- `43` = service response byte (0x40 + mode)
+- `01` = DTC count
+- `01 58` = P0158
+
+Searching for `43` anywhere in the raw hex string will match CAN IDs and
+other bytes. `parse_dtcs()` strips framing first, then anchors to the
+service response byte and reads exactly `count` DTC pairs after it.
 
 ---
 

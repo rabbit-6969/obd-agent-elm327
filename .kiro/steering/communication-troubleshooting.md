@@ -201,6 +201,90 @@ When verdict is LIMITED, warn the user about:
 
 ---
 
+## ISO-TP Multi-Frame Response Parsing
+
+**Scope**: This section applies only to **OBD-II request/response commands** (VIN, DTCs, UDS ReadDataByIdentifier, emission readiness). It does **not** apply to:
+
+- **CAN bus monitoring** (ATMA / ATCRA streaming) — those scripts parse raw CAN frames line-by-line in a loop; `extract_payload_hex()` is irrelevant there
+- **Single-frame UDS responses** with `ATCAF0` — when CAN auto-format is off and the response fits in one frame, there are no ISO-TP sequence bytes to strip; just search for the service response byte directly
+- **ATCAF1 (auto-format on) single-frame** — ELM327 strips framing automatically for single frames; no manual stripping needed
+
+### When you DO need `extract_payload_hex()`
+
+Use it when **all three** of these are true:
+1. You sent a request command (not ATMA monitoring)
+2. Headers are on (`ATH1`)
+3. The response spans multiple CAN frames (payload > ~7 bytes — VIN, long DIDs, multi-DTC responses)
+
+### The Problem
+
+ELM327 with `ATH1` returns multi-frame responses with CAN framing interleaved:
+
+```
+7E8 10 14 49 02 01 31 4A   <- first frame  (1x = FF type, 14 = length)
+7E8 21 38 47 41 35 39 31   <- consecutive frame 1 (2x = CF, x = seq)
+7E8 22 31 37 4C 31 34 31   <- consecutive frame 2
+```
+
+Naively stripping spaces and searching for `4902` will include CAN IDs and
+ISO-TP sequence bytes in the "payload", producing garbage.
+
+Token stripping rules:
+- `7E8` (3-char hex) → CAN ID, **skip**
+- `10` after CAN ID → first-frame byte, **skip** + skip next byte too (length)
+- `21`, `22` after CAN ID → consecutive-frame sequence byte, **skip**
+- All other 2-char hex tokens → payload bytes, **keep**
+
+### The Solution — `extract_payload_hex()`
+
+```python
+from obd2_helpers import extract_payload_hex
+payload = extract_payload_hex(response)
+# payload is now clean hex: '490201314A384741353931...'
+```
+
+### VIN — send ATCAF0 first
+
+```python
+elm.cmd("ATCAF0")                    # raw frames — framing bytes visible
+response = elm.cmd("0902", timeout=5)
+elm.cmd("ATCAF1")                    # restore
+```
+
+Without `ATCAF0`, some adapters reassemble frames but strip bytes inconsistently.
+
+### DTC responses — anchor to service byte, not raw hex
+
+Mode 03 single-frame example:
+```
+7E8 06 43 01 58 00 00 00
+         ^^ service response byte (0x43)
+            ^^ DTC count (1)
+               ^^^^^ DTC bytes: 01 58 → P0158
+```
+
+After `extract_payload_hex()`: `430158000000`
+
+Search for `43` in the **stripped payload**, read count byte, then read exactly
+`count × 4` hex chars. Do **not** search for `43` in the raw response — it
+will match CAN IDs (e.g. `743`, `7E8` contains no `43` but other IDs might).
+
+Use `obd2_helpers.parse_dtcs(response, mode=3)` which handles all of this.
+
+### CAN monitoring is different — do NOT use `extract_payload_hex()`
+
+CAN monitoring scripts (steering angle, wheel speeds, transmission gear) use
+ATMA/ATCRA streaming. Each line is already one complete CAN frame:
+
+```
+4B0 27 10 27 10 27 10 27 10   <- CAN ID + 8 data bytes, one frame per line
+```
+
+Parse these by splitting on whitespace: `parts[0]` = CAN ID, `parts[1:]` = data.
+No ISO-TP reassembly needed. The existing monitoring scripts are correct.
+
+---
+
 
 
 ### Negative Response (7F)
