@@ -14,13 +14,13 @@ Condition=Ignition ON, Engine OFF
 
 [VIN_READING]
 Command=09 02
-Response=Incomplete
-RawData=1J8~tSwè"L1
-Status=PARTIAL
-Notes=VIN reading corrupted, non-printable characters present
-ExpectedFormat=1J8 + 14 characters
-ActualLength=11 characters (incomplete)
-Recommendation=Read VIN from dashboard plate or door jamb
+Response=Not tested via ELM327 agent
+Status=UNTESTED
+Notes=DTC scan performed with Launch CRP123 standalone scanner, not ELM327.
+      VIN reading via OBD-II agent script has not been validated on this vehicle.
+      Known VIN from vehicle: 1J8GA59117L141942 (read from dashboard/door jamb or CRP123).
+      obd2_helpers.py parse fix (2026-03-16) should handle Jeep multi-frame response
+      correctly when tested, but this is unconfirmed on this vehicle.
 
 [PCM_COMMUNICATION]
 Address=0x7E0
@@ -105,7 +105,58 @@ Status=NOT_ACCESSIBLE
 Notes=Airbag module uses CCD/SCI bus, not accessible via OBD-II
 Recommendation=Use AlfaOBD for airbag diagnostics
 
-[STANDARD_OBD_PIDS]
+[EMISSIONS_AND_DTCS]
+ScanDate=2026-03-16
+ScanTool=Launch CRP123 (standalone scanner, not ELM327)
+MIL=OFF
+DTC_Count_PID01=0
+
+# Pending DTCs
+PendingDTC_1=P0158
+Description=O2 Sensor Circuit High Voltage - Bank 2 Sensor 2 (B2S2)
+Location=Passenger side, downstream/post-catalyst
+SymptomPattern=Intermittent; appears after short cold trips (gym/park/grocery)
+                Triggers on drive home before engine fully warm
+                B2S2 reacts slower than B1S2
+
+PendingDTC_2=P0430
+Description=Catalyst System Efficiency Below Threshold - Bank 2
+RootCause=Likely false positive caused by bad B2S2 sensor
+          PCM uses B2S2 to evaluate cat efficiency
+          High voltage from bad sensor mimics degraded cat signal
+CatCondition=Likely OK - replaced 2022
+
+# Owner Analysis
+ExhaustLeaks=ELIMINATED
+CatAge=Replaced 2022
+SuspectedCause=B2S2 heater circuit damage or intermittent internal short
+PlannedRepair=Replace B2S2 sensor (new sensor purchased 2026-03-16)
+
+# Heater Circuit Test
+HeaterPins=C and D (typical)
+HeaterResistanceSpec=3-30 ohm (Jeep 3.8L typically 5-15 ohm)
+OpenCircuit=Heater failed
+NearZeroResistance=Internal short
+
+# Readiness Monitors
+Monitor_Misfire=INCOMPLETE
+Monitor_FuelSystem=COMPLETE
+Monitor_Components=INCOMPLETE
+Monitor_Catalyst=COMPLETE
+Monitor_HeatedCatalyst=COMPLETE
+Monitor_EvaporativeSystem=COMPLETE
+IncompleteCount=2
+CompleteCount=4
+
+[LESSONS_LEARNED_EMISSIONS]
+1. P0158 + P0430 on same bank is a classic bad downstream O2 sensor pattern
+2. P0430 can be a false positive when B2S2 is faulty - replace sensor first
+3. Short cold trips are the trigger - heater circuit fault is the likely cause
+4. Slow B2S2 response vs B1S2 is a strong heater circuit indicator
+5. Cats replaced 2022 - unlikely to be the root cause
+6. Always replace sensor before condemning catalyst
+
+
 # Supported PIDs
 PID=01 00
 Description=Supported PIDs [01-20]

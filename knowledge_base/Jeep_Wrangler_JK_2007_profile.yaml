@@ -246,22 +246,120 @@ modules:
 vin_reading:
   method: "Mode 09 PID 02"
   command: "09 02"
-  status: "PARTIAL"
-  test_date: "2026-03-08"
-  result: "Incomplete VIN: 1J8~tSwè\"L1"
+  status: "UNTESTED"
+  known_vin: "1J8GA59117L141942"
+  vin_source: "Launch CRP123 scanner / vehicle placard"
   notes: |
-    VIN reading via standard OBD-II is unreliable on this vehicle.
-    Response contains non-printable characters and incomplete data.
-    
-    Expected VIN format: 1J8 (Jeep Wrangler) + 14 characters
-    Actual response: Partial data with corruption
-    
-    This is common on Jeep/Chrysler vehicles.
-    VIN can be read reliably from:
-    - Dashboard VIN plate (driver side, visible through windshield)
-    - Door jamb sticker (driver side)
-    - AlfaOBD software
-    - Dealer scan tool
+    DTC scan was performed with Launch CRP123 standalone scanner.
+    ELM327 agent VIN reading has not been validated on this vehicle.
+    Known VIN confirmed from scanner/placard: 1J8GA59117L141942.
+    obd2_helpers.py parse fix (2026-03-16) should handle Jeep multi-frame
+    response correctly when tested, but remains unconfirmed on this vehicle.
+
+emissions_and_dtcs:
+  last_scan_date: "2026-03-16"
+  scan_tool: "Launch CRP123 (standalone scanner)"
+  mil_status: "OFF"
+
+  confirmed_dtcs:
+    P0158:
+      description: "O2 Sensor Circuit High Voltage — Bank 2 Sensor 2 (B2S2)"
+      status: "PENDING (intermittent)"
+      first_seen: "2026-03-16"
+
+      location: |
+        Bank 2 = passenger side (3.8L V6, cylinders 2/4/6)
+        Sensor 2 = downstream / post-catalyst (after cat)
+        Connector: near rear of passenger-side catalytic converter
+
+      symptom_pattern: |
+        Appears after short cold trips (gym, park, grocery store).
+        Triggers on the drive home — engine not yet fully warm.
+        Intermittent: not present every trip.
+        B2S2 reacts slower than B1S2 (confirmed by owner observation).
+
+      root_cause_analysis: |
+        Exhaust leaks eliminated by owner.
+        Cats replaced 2022 — unlikely to be catalyst contamination.
+
+        Most likely causes (in order):
+        1. B2S2 heater circuit damage or intermittent internal short
+           - Heater brings sensor to operating temp quickly on cold starts
+           - Damaged heater = sensor stays cold longer = slow/high voltage reading
+           - Explains why fault appears on short trips (engine never fully warms)
+           - Explains slow reaction vs B1S2
+        2. Intermittent internal short in sensor element
+           - Can cause high voltage output regardless of exhaust composition
+        3. Wiring issue (connector corrosion, chafed wire)
+
+        Owner diagnosis: heater circuit damage or intermittent internal short.
+        Action: New sensor purchased, replacement planned.
+
+      repair_action: "Replace B2S2 sensor (new sensor purchased 2026-03-16)"
+
+      heater_circuit_test: |
+        Verify heater circuit with multimeter before/after replacement:
+        - Disconnect sensor connector
+        - Measure resistance across heater pins (typically C and D)
+        - Spec: 3–30 Ω (Jeep 3.8L typically 5–15 Ω)
+        - Open circuit (OL) = heater failed
+        - Near-zero resistance = internal short
+
+        Mode 06 check (if supported):
+        - PID $15/$16 = B2S2 heater monitor result
+        - Heater current/resistance test
+
+      cold_start_verification: |
+        After replacement, confirm heater is working:
+        - On cold start, B2S2 should reach switching behaviour within ~30s
+        - If it takes 2–5 minutes, heater is still degraded
+        - Monitor Mode 01 PID 0x17 (B2S2 voltage) on cold start
+
+    P0430:
+      description: "Catalyst System Efficiency Below Threshold — Bank 2"
+      status: "PENDING (intermittent)"
+      first_seen: "2026-03-16"
+
+      relationship_to_P0158: |
+        P0430 and P0158 appearing together on Bank 2 is a classic pattern.
+
+        The PCM uses B2S2 to evaluate catalyst efficiency:
+        - Healthy cat: B2S2 output is smooth/stable (cat storing O2)
+        - Degraded cat: B2S2 mimics B2S1 switching pattern
+
+        If B2S2 reads HIGH VOLTAGE (P0158) due to heater fault or internal
+        short, the PCM sees a signal that looks like a degraded catalyst —
+        triggering P0430 as a secondary/false fault.
+
+        Diagnosis path:
+        1. Replace B2S2 first
+        2. Complete a full drive cycle
+        3. P0430 clears and stays clear → cat was fine, sensor was bad
+        4. P0430 returns with confirmed good B2S2 → cat may be degraded
+
+        Given cats replaced 2022, false positive from bad sensor is most likely.
+
+      catalyst_condition: "Likely OK — replaced 2022, P0430 likely caused by bad B2S2"
+      repair_action: "Replace B2S2 first; re-evaluate P0430 after confirmed good sensor"
+
+  readiness_monitors:
+    last_check: "2026-03-16"
+    mil_on: false
+    dtc_count_pid01: 0
+    ignition_type: "Spark (gasoline)"
+    monitors:
+      Misfire:            {supported: true, complete: false}
+      Fuel_System:        {supported: true, complete: true}
+      Components:         {supported: true, complete: false}
+      Catalyst:           {supported: true, complete: true}
+      Heated_Catalyst:    {supported: true, complete: true}
+      Evaporative_System: {supported: true, complete: true}
+    incomplete_count: 2
+    complete_count: 4
+    notes: |
+      Misfire and Components incomplete — drive cycle needed.
+      Catalyst monitor COMPLETE despite P0430 pending — consistent with
+      intermittent fault that hasn't triggered a full monitor failure yet.
 
 can_bus_monitoring:
   status: "BLOCKED"
