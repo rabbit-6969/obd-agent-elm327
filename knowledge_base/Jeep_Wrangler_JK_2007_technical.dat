@@ -126,10 +126,19 @@ RootCause=Likely false positive caused by bad B2S2 sensor
           High voltage from bad sensor mimics degraded cat signal
 CatCondition=Likely OK - replaced 2022
 
-# Owner Analysis
+# Owner Analysis (Launch CRP123 live data, 2026-03-16)
 ExhaustLeaks=ELIMINATED
 CatAge=Replaced 2022
-SuspectedCause=B2S2 heater circuit damage or intermittent internal short
+LiveData_B2S2_Behaviour=Slow to react on throttle close / coast vs B1S2
+LiveData_LTFT_Bank1=Normal
+LiveData_LTFT_Bank2=Normal
+LiveData_LTFT_MaxDiff=~1% (banks essentially equal)
+LTFT_Interpretation=Equal LTFT rules out upstream fuel issue (injectors/MAF/vacuum leak)
+                    PCM not using B2S2 for closed-loop trim — bad sensor won't show in LTFT
+SlowDecel_Interpretation=Sensor element sluggish on lean event (decel/coast)
+                          Either cold (heater fault) or degraded element
+                          B1S2 normal on same event = sensor-specific, not exhaust/cat issue
+SuspectedCause=Degraded sensor element or heater circuit damage
 PlannedRepair=Replace B2S2 sensor (new sensor purchased 2026-03-16)
 
 # Heater Circuit Test

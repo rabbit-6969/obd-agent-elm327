@@ -282,15 +282,33 @@ emissions_and_dtcs:
         Exhaust leaks eliminated by owner.
         Cats replaced 2022 — unlikely to be catalyst contamination.
 
-        Most likely causes (in order):
-        1. B2S2 heater circuit damage or intermittent internal short
-           - Heater brings sensor to operating temp quickly on cold starts
-           - Damaged heater = sensor stays cold longer = slow/high voltage reading
-           - Explains why fault appears on short trips (engine never fully warms)
-           - Explains slow reaction vs B1S2
-        2. Intermittent internal short in sensor element
-           - Can cause high voltage output regardless of exhaust composition
-        3. Wiring issue (connector corrosion, chafed wire)
+        Live data from Launch CRP123 (2026-03-16):
+        - B2S2 slow to react on throttle close / coast vs B1S2
+        - Long term fuel trims (LTFT) equal between banks, max diff ~1%
+
+        LTFT balance is a critical finding:
+        - Equal LTFT means the PCM is making the same fuel corrections on both banks
+        - Rules out upstream causes: injectors, MAF, vacuum leak, fuel pressure
+        - The engine is running correctly — this is purely a sensor behaviour issue
+        - PCM does not use downstream O2 (B2S2) for closed-loop fuel trim,
+          so a bad B2S2 will never show up in LTFT
+
+        Slow B2S2 on decel/coast specifically:
+        - On throttle close / coast, exhaust goes lean (high O2)
+        - A healthy downstream sensor should drop voltage quickly (lean = low voltage)
+        - Slow drop = sensor element is sluggish — either cold (heater fault) or
+          the element itself is degraded (internal contamination or aging)
+        - B1S2 responding normally on the same event confirms it's sensor-specific,
+          not an exhaust routing or cat difference
+
+        Most likely causes (refined after live data):
+        1. Degraded sensor element — slow electrochemical response regardless of temp
+           - Consistent with intermittent fault (element works sometimes, not always)
+           - Consistent with slow decel response specifically
+        2. Heater circuit damage — sensor runs cold, slow to respond on short trips
+           - Explains short-trip trigger pattern
+           - On longer drives exhaust heat compensates, fault doesn't appear
+        3. Intermittent internal short — causes high voltage output intermittently
 
         Owner diagnosis: heater circuit damage or intermittent internal short.
         Action: New sensor purchased, replacement planned.
